@@ -2,13 +2,13 @@
 
 /* Reminder: always indent with 4 spaces (no tabs). */
 // +---------------------------------------------------------------------------+
-// | Geeklog 1.3                                                               |
+// | Geeklog 1.4                                                               |
 // +---------------------------------------------------------------------------+
 // | usersettings.php                                                          |
 // |                                                                           |
 // | Geeklog user settings page.                                               |
 // +---------------------------------------------------------------------------+
-// | Copyright (C) 2000-2005 by the following authors:                         |
+// | Copyright (C) 2000-2006 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Mark Limburg      - mlimburg AT users DOT sourceforge DOT net    |
@@ -32,7 +32,7 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 //
-// $Id: usersettings.php,v 1.123 2005/11/24 14:27:56 ospiess Exp $
+// $Id: usersettings.php,v 1.123.2.1 2006/03/04 19:45:37 dhaun Exp $
 
 require_once ('lib-common.php');
 require_once ($_CONF['path_system'] . 'lib-user.php');
@@ -124,7 +124,8 @@ function edituser()
     $preferences->set_var ('email_value', htmlspecialchars ($A['email']));
     $preferences->set_var ('homepage_value',
                            htmlspecialchars (COM_killJS ($A['homepage'])));
-    $preferences->set_var ('location_value', htmlspecialchars ($A['location']));
+    $preferences->set_var ('location_value',
+                           htmlspecialchars (strip_tags ($A['location'])));
     $preferences->set_var ('signature_value', htmlspecialchars ($A['sig']));
 
     if ($_CONF['allow_user_photo'] == 1) {
@@ -859,10 +860,10 @@ function saveuser($A)
 
     $A['email'] = COM_applyFilter ($A['email']);
     $A['homepage'] = COM_applyFilter ($A['homepage']);
-    $A['location'] = addslashes ($A['location']);
 
     // basic filtering only
     $A['fullname'] = strip_tags (COM_stripslashes ($A['fullname']));
+    $A['location'] = strip_tags (COM_stripslashes ($A['location']));
     $A['sig'] = strip_tags (COM_stripslashes ($A['sig']));
     $A['about'] = strip_tags (COM_stripslashes ($A['about']));
     $A['pgpkey'] = strip_tags (COM_stripslashes ($A['pgpkey']));
@@ -913,6 +914,7 @@ function saveuser($A)
 
         $A['fullname'] = addslashes ($A['fullname']);
         $A['email'] = addslashes ($A['email']);
+        $A['location'] = addslashes ($A['location']);
         $A['sig'] = addslashes ($A['sig']);
         $A['about'] = addslashes ($A['about']);
         $A['pgpkey'] = addslashes ($A['pgpkey']);

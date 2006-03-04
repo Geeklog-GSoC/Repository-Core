@@ -32,7 +32,7 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 //
-// $Id: users.php,v 1.128 2006/02/18 12:39:23 dhaun Exp $
+// $Id: users.php,v 1.128.2.1 2006/03/04 19:45:37 dhaun Exp $
 
 /**
 * This file handles user authentication
@@ -131,7 +131,7 @@ function userprofile ($user, $msg = 0)
     $user_templates->set_var ('lang_homepage', $LANG04[6]);
     $user_templates->set_var ('user_homepage', COM_killJS ($A['homepage']));
     $user_templates->set_var ('lang_location', $LANG04[106]);
-    $user_templates->set_var ('user_location', $A['location']);
+    $user_templates->set_var ('user_location', strip_tags ($A['location']));
     $user_templates->set_var ('lang_bio', $LANG04[7]);
     $user_templates->set_var ('user_bio', nl2br (stripslashes ($A['about'])));
     $user_templates->set_var ('lang_pgpkey', $LANG04[8]);
