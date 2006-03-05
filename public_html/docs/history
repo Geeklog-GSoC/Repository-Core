@@ -1,5 +1,15 @@
 GeekLog History/Changes:
 
+Mar 5, 2006 (1.4.0sr2)
+-----------
+
+Security issues:
+
+- Konstantin Dyakoff found an old bug in the session handling that would allow
+  anyone to log in as any user.
+- HTML was not stripped from the Location field in a user's profile.
+
+
 Feb 19, 2006 (1.4.0sr1)
 ------------
 
