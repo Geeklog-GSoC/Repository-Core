@@ -1,5 +1,9 @@
 <?php
 
+if (strpos ($_SERVER['PHP_SELF'], 'functions.php') !== false) {
+    die ('This file can not be used on its own!');
+}
+
 $_IMAGE_TYPE = 'png';
 
 $result = DB_query ("SELECT onleft,name FROM {$_TABLES['blocks']} WHERE is_enabled = 1");

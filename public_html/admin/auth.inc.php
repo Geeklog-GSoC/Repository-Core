@@ -31,10 +31,10 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 //
-// $Id: auth.inc.php,v 1.30 2006/01/21 13:32:34 dhaun Exp $
+// $Id: auth.inc.php,v 1.30.2.1 2006/05/27 15:38:46 dhaun Exp $
 
 // this file can't be used on its own
-if (eregi ('auth.inc.php', $_SERVER['PHP_SELF']))
+if (strpos ($_SERVER['PHP_SELF'], 'auth.inc.php') !== false)
 {
     die ('This file can not be used on its own.');
 }
@@ -42,7 +42,8 @@ if (eregi ('auth.inc.php', $_SERVER['PHP_SELF']))
 // MAIN
 $uid = '';
 if (!empty ($_POST['loginname']) && !empty ($_POST['passwd'])) {
-    $status = SEC_authenticate ($_POST['loginname'], $_POST['passwd'], $uid);
+    $status = SEC_authenticate (COM_applyFilter ($_POST['loginname']),
+                                $_POST['passwd'], $uid);
 } else {
     $status = '';
 }
