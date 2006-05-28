@@ -8,7 +8,7 @@
 // |                                                                           |
 // | Let users submit stories, events and plugin stuff.                        |
 // +---------------------------------------------------------------------------+
-// | Copyright (C) 2000-2005 by the following authors:                         |
+// | Copyright (C) 2000-2006 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Mark Limburg      - mlimburg AT users DOT sourceforge DOT net    |
@@ -32,7 +32,7 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 //
-// $Id: submit.php,v 1.94 2006/01/07 20:05:10 blaine Exp $
+// $Id: submit.php,v 1.94.2.1 2006/05/28 07:56:36 dhaun Exp $
 
 require_once ('lib-common.php');
 require_once ($_CONF['path_system'] . 'lib-story.php');
@@ -288,6 +288,7 @@ function submitstory($topic = '')
         $A['hits'] = 0;
         $res = DB_query("SELECT username, fullname, photo FROM {$_TABLES['users']} WHERE uid = {$A['uid']}");
         $A += DB_fetchArray($res);
+        $A['tid'] = COM_applyFilter ($A['tid']);
         $res = DB_query("SELECT topic, imageurl FROM {$_TABLES['topics']} WHERE tid = '{$A['tid']}'");
         $A += DB_fetchArray($res);
         if ($A['postmode'] == 'plaintext') {
