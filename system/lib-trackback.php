@@ -29,7 +29,7 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 // 
-// $Id: lib-trackback.php,v 1.23 2006/01/25 09:01:07 dhaun Exp $
+// $Id: lib-trackback.php,v 1.23.2.1 2006/06/04 07:53:05 dhaun Exp $
 
 if (eregi ('lib-trackback.php', $_SERVER['PHP_SELF'])) {
     die ('This file can not be used on its own.');
@@ -39,6 +39,10 @@ if (eregi ('lib-trackback.php', $_SERVER['PHP_SELF'])) {
 define ('TRB_SAVE_OK',      0);
 define ('TRB_SAVE_SPAM',   -1);
 define ('TRB_SAVE_REJECT', -2);
+
+// set to true to log rejected Trackbacks
+$_TRB_LOG_REJECTS = false;
+
 
 /**
 * Send a trackback response message
@@ -70,6 +74,30 @@ function TRB_sendTrackbackResponse ($error, $errormsg = '', $http_status = 200, 
     }
     header ('Content-Type: text/xml');
     echo $display;
+}
+
+/**
+* Helper function for the curious: Log rejected trackbacks
+*
+* @param    string  $logmsg     Message to log
+* @return   void
+*
+*/
+function TRB_logRejected ($reason, $url = '')
+{
+    global $_TRB_LOG_REJECTS;
+
+    if ($_TRB_LOG_REJECTS) {
+
+        $logmsg = 'Trackback from IP ' . $_SERVER['REMOTE_ADDR']
+                . ' rejected for ' . $reason . ', URL: ' . $url;
+
+        if (function_exists ('SPAMX_log')) {
+            SPAMX_log ($logmsg);
+        } else {
+            COM_errorLog ($logmsg);
+        }
+    }
 }
 
 /**
@@ -243,7 +271,7 @@ function TRB_saveTrackbackComment ($sid, $type, $url, $title = '', $blog = '', $
 
     $url = COM_applyFilter ($url);
     $title = TRB_filterTitle ($title);
-    $blog = TRB_filterBlogname ($blog_name);
+    $blog = TRB_filterBlogname ($blog);
     $excerpt = TRB_filterExcerpt ($excerpt);
 
     // MT does that, so follow its example ...
@@ -322,7 +350,7 @@ function TRB_deleteTrackbackComment ($cid)
 */
 function TRB_formatComment ($url, $title = '', $blog = '', $excerpt = '', $date = 0, $delete_option = false, $cid = '', $ipaddress = '')
 {
-    global $_CONF, $LANG01, $LANG_TRB;
+    global $_CONF, $LANG01, $LANG_TRB, $MESSAGE;
 
     if (empty ($title)) {
         $title = $url;
@@ -395,6 +423,78 @@ function TRB_formatComment ($url, $title = '', $blog = '', $excerpt = '', $date 
 }
 
 /**
+* Check if a given web page links to us
+*
+* @param    string  $sid        ID of entry that got pinged
+* @param    string  $type       type of that entry ('article' for stories, etc.)
+* @para     string  $urlToGet   URL of the page that supposedly links to us
+* @return   bool                true = links to us, false = doesn't
+*
+*/
+function TRB_linksToUs ($sid, $type, $urlToGet)
+{
+    global $_CONF;
+
+    if (!isset ($_CONF['check_trackback_link']) ||
+            ($_CONF['check_trackback_link'] == 0)) {
+        // we shouldn't be here - don't do anything
+        return true;
+    }
+
+    require_once ('HTTP/Request.php');
+
+    $retval = false;
+
+    if ($_CONF['check_trackback_link'] == 2) {
+        // build the URL of the pinged page on our site
+        if ($type == 'article') {
+            $urlToCheck = COM_buildUrl ($_CONF['site_url']
+                                        . '/article.php?story=' . $sid);
+        } else {
+            $urlToCheck = PLG_getItemInfo ($type, $sid, 'url');
+        }
+    } else {
+        // check only against the site_url
+        $urlToCheck = $_CONF['site_url'];
+    }
+
+    $req = new HTTP_Request ($urlToGet);
+    $req->addHeader ('User-Agent', 'GeekLog/' . VERSION);
+    if (PEAR::isError ($req->sendRequest ())) {
+        COM_errorLog ("Trackback verification: " . $response->getMessage()
+                      . " when requesting $urlToGet");
+    } else {
+        if ($req->getResponseCode () == 200) {
+            $body = $req->getResponseBody ();
+
+            preg_match_all ("/<a[^>]*href=[\"']([^\"']*)[\"'][^>]*>/i",
+                            $body, $matches);
+            for ($i = 0; $i < count ($matches[0]); $i++) {
+                if ($_CONF['check_trackback_link'] == 1) {
+                    if (strpos ($matches[1][$i], $urlToCheck) === 0) {
+                        // found it!
+                        $retval = true;
+                        break;
+                    }
+                } else {
+                    if ($matches[1][$i] == $urlToCheck) {
+                        // found it!
+                        $retval = true;
+                        break;
+                    }
+                }
+            }
+        } else {
+            COM_errorLog ("Trackback verification: Got HTTP response code "
+                          . $req->getResponseCode ()
+                          . " when requesting $urlToGet");
+        }
+    }
+
+    return $retval;
+}
+
+/**
 * Handles a trackback ping for an entry.
 *
 * Also takes care of the speedlimit and spam. Assumes that the caller of this
@@ -407,6 +507,12 @@ function TRB_formatComment ($url, $title = '', $blog = '', $excerpt = '', $date 
 * @param    string  $type   type of that entry ('article' for stories, etc.)
 * @return   bool            true = success, false = an error occured
 *
+* P.S. "Critical" errors are rejected with a HTTP 403 Forbidden status code.
+*      According to RFC2616, this status code means
+*      "The server understood the request, but is refusing to fulfill it.
+*       Authorization will not help and the request SHOULD NOT be repeated."
+*      See http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.4
+*
 */
 function TRB_handleTrackbackPing ($sid, $type = 'article')
 {
@@ -418,18 +524,35 @@ function TRB_handleTrackbackPing ($sid, $type = 'article')
         'no_url'     => 'No URL given.',
         'rejected'   => 'Multiple posts not allowed.',
         'spam'       => 'Spam detected.',
-        'speedlimit' => 'Your last trackback comment was %d seconds ago. This site requires at least %d seconds between trackback comments.'
+        'speedlimit' => 'Your last trackback comment was %d seconds ago. This site requires at least %d seconds between trackback comments.',
+        'no_link'    => 'Trackback rejected as you do not seem to link to us.'
     );
+
+    // the speed limit applies to trackback comments, too
+    if (isset ($_CONF['trackbackspeedlimit'])) {
+        $speedlimit = $_CONF['trackbackspeedlimit'];
+    } else {
+        $speedlimit = $_CONF['commentspeedlimit'];
+    }
+    COM_clearSpeedlimit ($speedlimit, 'trackback');
+    $last = COM_checkSpeedlimit ('trackback');
+    if ($last > 0) {
+        TRB_sendTrackbackResponse (1, sprintf ($TRB_ERROR['speedlimit'],
+                                   $last, $speedlimit), 403, 'Forbidden');
+        TRB_logRejected ('Speedlimit', $_POST['url']);
+
+        return false;
+    }
+
+    // update speed limit now in any case
+    COM_updateSpeedlimit ('trackback');
 
     if (isset ($_POST['url'])) { // a URL is mandatory ...
 
-        // the speed limit applies to trackback comments, too
-        COM_clearSpeedlimit ($_CONF['commentspeedlimit'], 'trackback');
-        $last = COM_checkSpeedlimit ('trackback');
-        if ($last > 0) {
-            TRB_sendTrackbackResponse (1, sprintf ($TRB_ERROR['speedlimit'],
-                                       $last, $_CONF['commentspeedlimit']),
+        if (substr ($_POST['url'], 0, 4) != 'http') {
+            TRB_sendTrackbackResponse (1, $TRB_ERROR['no_url'],
                                        403, 'Forbidden');
+            TRB_logRejected ('No valid URL', $_POST['url']);
 
             return false;
         }
@@ -438,20 +561,31 @@ function TRB_handleTrackbackPing ($sid, $type = 'article')
         $result = TRB_checkForSpam ($_POST['url'], $_POST['title'],
                                     $_POST['blog_name'], $_POST['excerpt']);
 
-        // update speed limit in any case
-        COM_updateSpeedlimit ('trackback');
-
         if ($result == TRB_SAVE_SPAM) {
             TRB_sendTrackbackResponse (1, $TRB_ERROR['spam'], 403, 'Forbidden');
+            TRB_logRejected ('Spam detected', $_POST['url']);
 
             return false;
+        }
+
+        if (isset ($_CONF['check_trackback_link']) &&
+                ($_CONF['check_trackback_link'] > 0)) {
+            if (!TRB_linksToUs ($sid, $type, $_POST['url'])) {
+                TRB_sendTrackbackResponse (1, $TRB_ERROR['no_link'],
+                                           403, 'Forbidden');
+                TRB_logRejected ('No link to us', $_POST['url']);
+
+                return false;
+            }
         }
 
         $saved = TRB_saveTrackbackComment ($sid, $type, $_POST['url'],
                     $_POST['title'], $_POST['blog_name'], $_POST['excerpt']);
 
         if ($saved == TRB_SAVE_REJECT) {
-            TRB_sendTrackbackResponse (1, $TRB_ERROR['rejected']);
+            TRB_sendTrackbackResponse (1, $TRB_ERROR['rejected'],
+                                       403, 'Forbidden');
+            TRB_logRejected ('Multiple Trackbacks', $_POST['url']);
 
             return false;
         }
@@ -466,6 +600,7 @@ function TRB_handleTrackbackPing ($sid, $type = 'article')
         return true;
     } else {
         TRB_sendTrackbackResponse (1, $TRB_ERROR['no_url']);
+        TRB_logRejected ('No URL', $_POST['url']);
     }
 
     return false;
@@ -560,10 +695,12 @@ function TRB_sendTrackbackPing ($targeturl, $url, $title, $excerpt, $blog = '')
     }
 
     $target = parse_url ($targeturl);
-    if (!empty ($target['query'])) {
+    if (!isset ($target['query'])) {
+        $target['query'] = '';
+    } else if (!empty ($target['query'])) {
         $target['query'] = '?' . $target['query'];
     }
-    if (!is_numeric ($target['port'])) {
+    if (!isset ($target['port']) || !is_numeric ($target['port'])) {
         $target['port'] = 80;
     }
 
@@ -588,7 +725,7 @@ function TRB_sendTrackbackPing ($targeturl, $url, $title, $excerpt, $blog = '')
         $charset = $LANG_CHARSET;
     }
 
-    fputs ($sock, 'POST ' . $target['path'] . $target['query'] . " HTTP/1.1\r\n");
+    fputs ($sock, 'POST ' . $target['path'] . $target['query'] . " HTTP/1.0\r\n");
     fputs ($sock, 'Host: ' . $target['host'] . "\r\n");
     fputs ($sock, 'Content-type: application/x-www-form-urlencoded; charset='
                   . $charset . "\r\n");
@@ -644,9 +781,9 @@ function TRB_detectTrackbackUrl ($url)
 
     $retval = false;
 
-    $req =& new HTTP_Request ($url);
+    $req = new HTTP_Request ($url);
     $req->setMethod (HTTP_REQUEST_METHOD_GET);
-    $req->addHeader ('User-Agent', 'GeekLog ' . VERSION);
+    $req->addHeader ('User-Agent', 'GeekLog/' . VERSION);
 
     $response = $req->sendRequest ();
     if (PEAR::isError ($response)) {
