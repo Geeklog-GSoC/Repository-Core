@@ -33,7 +33,11 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 //
-// $Id: lib-admin.php,v 1.45 2006/01/31 19:43:17 ospiess Exp $
+// $Id: lib-admin.php,v 1.45.2.1 2006/06/30 12:20:48 dhaun Exp $
+
+if (strpos ($_SERVER['PHP_SELF'], 'lib-admin.php') !== false) {
+    die ('This file can not be used on its own!');
+}
 
 function ADMIN_simpleList($fieldfunction, $header_arr, $text_arr,
                            $data_arr, $menu_arr = '')

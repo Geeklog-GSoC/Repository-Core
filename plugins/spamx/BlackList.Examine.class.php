@@ -9,8 +9,12 @@
  * 
  * Licensed under GNU General Public License
  *
- * $Id: BlackList.Examine.class.php,v 1.10 2005/04/10 10:02:43 dhaun Exp $
+ * $Id: BlackList.Examine.class.php,v 1.10.2.1 2006/06/30 12:20:49 dhaun Exp $
  */
+
+if (strpos ($_SERVER['PHP_SELF'], 'BlackList.Examine.class.php') !== false) {
+    die ('This file can not be used on its own!');
+}
 
 /**
  * Include Abstract Examine Class

@@ -33,7 +33,11 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 //
-// $Id: lib-comment.php,v 1.28 2006/01/01 22:30:19 blaine Exp $
+// $Id: lib-comment.php,v 1.28.2.1 2006/06/30 12:20:48 dhaun Exp $
+
+if (strpos ($_SERVER['PHP_SELF'], 'lib-comment.php') !== false) {
+    die ('This file can not be used on its own!');
+}
 
 if( $_CONF['allow_user_photo'] )
 {

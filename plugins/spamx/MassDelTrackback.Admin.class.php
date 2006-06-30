@@ -12,8 +12,12 @@
 *
 * Licensed under GNU General Public License
 *
-* $Id: MassDelTrackback.Admin.class.php,v 1.3 2006/01/15 10:40:04 dhaun Exp $
+* $Id: MassDelTrackback.Admin.class.php,v 1.3.2.1 2006/06/30 12:20:49 dhaun Exp $
 */
+
+if (strpos ($_SERVER['PHP_SELF'], 'MassDelTrackback.Admin.class.php') !== false) {
+    die ('This file can not be used on its own!');
+}
 
 require_once ($_CONF['path'] . 'plugins/spamx/BaseAdmin.class.php');
 

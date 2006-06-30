@@ -15,8 +15,12 @@
  * Based on MT-Blacklist Updater by
  * Cheah Chu Yeow (http://blog.codefront.net/)
  *
- * $Id: Import.Admin.class.php,v 1.9 2005/10/08 14:55:43 dhaun Exp $
+ * $Id: Import.Admin.class.php,v 1.9.2.1 2006/06/30 12:20:49 dhaun Exp $
  */
+
+if (strpos ($_SERVER['PHP_SELF'], 'Import.Admin.class.php') !== false) {
+    die ('This file can not be used on its own!');
+}
 
 require_once ($_CONF['path'] . 'plugins/spamx/BaseAdmin.class.php');
 

@@ -9,8 +9,12 @@
  * 
  * Licensed under GNU General Public License
  *
- * $Id: DeleteComment.Action.class.php,v 1.4 2005/04/10 10:02:43 dhaun Exp $
+ * $Id: DeleteComment.Action.class.php,v 1.4.2.1 2006/06/30 12:20:49 dhaun Exp $
  */
+
+if (strpos ($_SERVER['PHP_SELF'], 'DeleteComment.Action.class.php') !== false) {
+    die ('This file can not be used on its own!');
+}
 
 /**
  * Include Abstract Action Class

@@ -11,8 +11,12 @@
 *
 * Licensed under the GNU General Public License
 *
-* $Id: Header.Examine.class.php,v 1.3 2005/04/10 10:02:45 dhaun Exp $
+* $Id: Header.Examine.class.php,v 1.3.4.1 2006/06/30 12:20:49 dhaun Exp $
 */
+
+if (strpos ($_SERVER['PHP_SELF'], 'Header.Examine.class.php') !== false) {
+    die ('This file can not be used on its own!');
+}
 
 /**
 * Include Abstract Examine Class

@@ -9,8 +9,12 @@
 *
 * Licensed under GNU General Public License
 *
-* $Id: EditIP.Admin.class.php,v 1.2 2005/04/10 10:02:44 dhaun Exp $
+* $Id: EditIP.Admin.class.php,v 1.2.4.1 2006/06/30 12:20:49 dhaun Exp $
 */
+
+if (strpos ($_SERVER['PHP_SELF'], 'EditIP.Admin.class.php') !== false) {
+    die ('This file can not be used on its own!');
+}
 
 /**
 * Personal Black List Editor

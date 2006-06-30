@@ -33,10 +33,10 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 // 
-// $Id: lib-story.php,v 1.56 2006/02/11 20:12:52 ospiess Exp $
+// $Id: lib-story.php,v 1.56.2.1 2006/06/30 12:20:48 dhaun Exp $
 
-if (eregi ('lib-story.php', $_SERVER['PHP_SELF'])) {
-    die ('This file can not be used on its own.');
+if (strpos ($_SERVER['PHP_SELF'], 'lib-story.php') !== false) {
+    die ('This file can not be used on its own!');
 }
 
 if( $_CONF['allow_user_photo'] )

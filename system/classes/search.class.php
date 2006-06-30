@@ -30,9 +30,9 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 //
-// $Id: search.class.php,v 1.49 2005/12/29 09:24:47 dhaun Exp $
+// $Id: search.class.php,v 1.49.2.1 2006/06/30 12:20:48 dhaun Exp $
 
-if (eregi ('search.class.php', $_SERVER['PHP_SELF'])) {
+if (strpos ($_SERVER['PHP_SELF'], 'search.class.php') !== false) {
     die ('This file can not be used on its own.');
 }
 

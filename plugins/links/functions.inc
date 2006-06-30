@@ -42,8 +42,12 @@
 
 
 // Reminder: always indent with 4 spaces (no tabs).
-// $Id: functions.inc,v 1.49 2006/01/28 14:50:28 dhaun Exp $
+// $Id: functions.inc,v 1.49.2.1 2006/06/30 12:20:48 dhaun Exp $
 
+
+if (strpos ($_SERVER['PHP_SELF'], 'functions.inc') !== false) {
+    die ('This file can not be used on its own.');
+}
 
 $langfile = $_CONF['path'] . 'plugins/links/language/'
           . $_CONF['language'] . '.php';

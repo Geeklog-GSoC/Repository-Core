@@ -9,8 +9,12 @@
 *
 * Licensed under GNU General Public License
 *
-* $Id: IPofUrl.Examine.class.php,v 1.4 2005/04/10 10:02:45 dhaun Exp $
+* $Id: IPofUrl.Examine.class.php,v 1.4.4.1 2006/06/30 12:20:49 dhaun Exp $
 */
+
+if (strpos ($_SERVER['PHP_SELF'], 'IPofUrl.Examine.class.php') !== false) {
+    die ('This file can not be used on its own!');
+}
 
 /**
 * Include Abstract Examine Class

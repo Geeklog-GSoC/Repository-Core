@@ -11,8 +11,12 @@
 *
 * Licensed under GNU General Public License
 *
-* $Id: EditHeader.Admin.class.php,v 1.3 2005/12/01 08:55:29 dhaun Exp $
+* $Id: EditHeader.Admin.class.php,v 1.3.2.1 2006/06/30 12:20:49 dhaun Exp $
 */
+
+if (strpos ($_SERVER['PHP_SELF'], 'EditHeader.Admin.class.php') !== false) {
+    die ('This file can not be used on its own!');
+}
 
 /**
 * HTTP Header Editor

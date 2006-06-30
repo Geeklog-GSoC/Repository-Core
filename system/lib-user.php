@@ -32,10 +32,10 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 //
-// $Id: lib-user.php,v 1.23 2005/12/10 11:58:57 dhaun Exp $
+// $Id: lib-user.php,v 1.23.2.1 2006/06/30 12:20:48 dhaun Exp $
 
-if (eregi ('lib-user.php', $_SERVER['PHP_SELF'])) {
-    die ('This file can not be used on its own.');
+if (strpos ($_SERVER['PHP_SELF'], 'lib-user.php') !== false) {
+    die ('This file can not be used on its own!');
 }
 
 /* Constants for acount stats */

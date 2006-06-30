@@ -34,7 +34,11 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 //
-// $Id: functions.inc,v 1.37 2005/12/28 10:11:48 dhaun Exp $
+// $Id: functions.inc,v 1.37.2.1 2006/06/30 12:20:49 dhaun Exp $
+
+if (strpos ($_SERVER['PHP_SELF'], 'functions.inc') !== false) {
+    die ('This file can not be used on its own.');
+}
 
 $langfile = $_CONF['path'] . 'plugins/polls/language/'
           . $_CONF['language'] . '.php';

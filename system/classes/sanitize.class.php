@@ -36,6 +36,10 @@
 *  Jan 2005: Blaine Lang
 */
 
+if (strpos ($_SERVER['PHP_SELF'], 'sanitize.class.php') !== false) {
+    die ('This file can not be used on its own.');
+}
+
 /**
  * Include the base kses class if not already loaded
  */
