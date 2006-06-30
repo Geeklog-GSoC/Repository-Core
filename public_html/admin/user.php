@@ -8,7 +8,7 @@
 // |                                                                           |
 // | Geeklog user administration page.                                         |
 // +---------------------------------------------------------------------------+
-// | Copyright (C) 2000-2005 by the following authors:                         |
+// | Copyright (C) 2000-2006 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Mark Limburg      - mlimburg AT users DOT sourceforge DOT net    |
@@ -32,7 +32,7 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 //
-// $Id: user.php,v 1.139 2005/12/22 14:39:46 ospiess Exp $
+// $Id: user.php,v 1.139.2.1 2006/06/30 12:03:48 dhaun Exp $
 
 // Set this to true to get various debug messages from this script
 $_USER_VERBOSE = false;
@@ -676,6 +676,12 @@ if ($_POST['passwd']!=$_POST['passwd_conf']) { // passwords were entered but two
         $display = COM_refresh ($_CONF['site_admin_url'] . '/user.php');
     }
 } else if (($mode == $LANG_ADMIN['save']) && !empty ($LANG_ADMIN['save'])) { // save
+    if (!isset ($_POST['oldstatus'])) {
+        $_POST['oldstatus'] = USER_ACCOUNT_ACTIVE;
+    }
+    if (!isset ($_POST['userstatus'])) {
+        $_POST['userstatus'] = USER_ACCOUNT_ACTIVE;
+    }
     $display = saveusers (COM_applyFilter ($_POST['uid'], true),
             $_POST['username'], $_POST['fullname'],
             $_POST['passwd'], $_POST['passwd_conf'], $_POST['email'],
