@@ -160,18 +160,18 @@ FCKConfig.ImageDlgHideAdvanced    = false ;
 
 FCKConfig.FlashDlgHideAdvanced    = false ;
 
-FCKConfig.LinkBrowser = true ;
-FCKConfig.LinkBrowserURL = FCKConfig.BasePath + 'filemanager/browser/mcpuk/browser.html?Connector=connectors/php/connector.php' ;
+FCKConfig.LinkBrowser = false;
+FCKConfig.LinkBrowserURL = '';
 FCKConfig.LinkBrowserWindowWidth    = screen.width * 0.7 ;    // 70%
 FCKConfig.LinkBrowserWindowHeight    = screen.height * 0.7 ;    // 70%
 
-FCKConfig.ImageBrowser = true ;
-FCKConfig.ImageBrowserURL = FCKConfig.BasePath + 'filemanager/browser/mcpuk/browser.html?Type=Image&Connector=connectors/php/connector.php' ;
+FCKConfig.ImageBrowser = false;
+FCKConfig.ImageBrowserURL = '';
 FCKConfig.ImageBrowserWindowWidth  = screen.width * 0.7 ;    // 70% ;
 FCKConfig.ImageBrowserWindowHeight = screen.height * 0.7 ;    // 70% ;
 
-FCKConfig.FlashBrowser = true ;
-FCKConfig.FlashBrowserURL = FCKConfig.BasePath + 'filemanager/browser/mcpuk/browser.html?Type=Flash&Connector=connectors/php/connector.php' ;
+FCKConfig.FlashBrowser = false;
+FCKConfig.FlashBrowserURL = '';
 FCKConfig.FlashBrowserWindowWidth  = screen.width * 0.7 ;    //70% ;
 FCKConfig.FlashBrowserWindowHeight = screen.height * 0.7 ;    //70% ;
 
