@@ -8,7 +8,7 @@
 // |                                                                           |
 // | Geeklog comment library.                                                  |
 // +---------------------------------------------------------------------------+
-// | Copyright (C) 2000-2005 by the following authors:                         |
+// | Copyright (C) 2000-2006 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Mark Limburg      - mlimburg AT users DOT sourceforge DOT net    |
@@ -33,7 +33,7 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 //
-// $Id: lib-comment.php,v 1.28.2.1 2006/06/30 12:20:48 dhaun Exp $
+// $Id: lib-comment.php,v 1.28.2.2 2006/07/15 19:19:56 dhaun Exp $
 
 if (strpos ($_SERVER['PHP_SELF'], 'lib-comment.php') !== false) {
     die ('This file can not be used on its own!');
@@ -62,7 +62,7 @@ if( $_CONF['allow_user_photo'] )
 */
 function CMT_commentBar( $sid, $title, $type, $order, $mode )
 {
-    global $_CONF, $_TABLES, $_USER, $LANG01, $_REQUEST;
+    global $_CONF, $_TABLES, $_USER, $LANG01;
 
     $parts = explode( '/', $_SERVER['PHP_SELF'] );
     $page = array_pop( $parts );
@@ -667,12 +667,22 @@ function CMT_commentForm($title,$comment,$sid,$pid='0',$type,$mode,$postmode)
                 $start->set_var( 'layout_url', $_CONF['layout_url'] );
                 $start->set_var( 'hide_if_preview', 'style="display:none"' );
 
-                if (empty ($_POST['username'])) {
-                    $_POST['username'] = DB_getItem ($_TABLES['users'],
-                            'username', "uid = $uid");
+                // Clean up all the vars
+                $A = array();
+                foreach ($_POST as $key => $value) {
+                    if (($key == 'pid') || ($key == 'cid')) {
+                        $A[$key] = COM_applyFilter ($_POST[$key], true);
+                    } else {
+                        $A[$key] = COM_applyFilter ($_POST[$key]);
+                    }
                 }
-                $thecomments = CMT_getComment ($_POST, 'flat', $type,
-                                               'ASC', false, true );
+
+                if (empty ($A['username'])) {
+                    $A['username'] = DB_getItem ($_TABLES['users'], 'username',
+                                                 "uid = $uid");
+                }
+                $thecomments = CMT_getComment ($A, 'flat', $type, 'ASC', false,
+                                               true );
 
                 $start->set_var( 'comments', $thecomments );
                 $retval .= COM_startBlock ($LANG03[14])
@@ -761,7 +771,7 @@ function CMT_commentForm($title,$comment,$sid,$pid='0',$type,$mode,$postmode)
  *
  */
 function CMT_saveComment ($title, $comment, $sid, $pid, $type, $postmode) {
-    global $_CONF, $_TABLES, $_USER, $_SERVER, $LANG03;
+    global $_CONF, $_TABLES, $_USER, $LANG03;
 
     $ret = 0;
 
