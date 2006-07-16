@@ -1,5 +1,12 @@
 GeekLog History/Changes:
 
+July 16, 2006 (1.4.0sr5)
+-------------
+
+JPCERT/CC informed us about a possible XSS in the comment handling that we're
+fixing with this release.
+
+
 June 30, 2006 (1.4.0sr4)
 -------------
 
