@@ -35,7 +35,7 @@
 // | Please read docs/install.html which describes how to install Geeklog.     |
 // +---------------------------------------------------------------------------+
 //
-// $Id: install.php,v 1.83 2005/12/28 10:11:51 dhaun Exp $
+// $Id: install.php,v 1.83.2.1 2006/07/22 15:20:10 dhaun Exp $
 
 // this should help expose parse errors (e.g. in config.php) even when
 // display_errors is set to Off in php.ini
@@ -211,9 +211,9 @@ function INST_welcomePage()
         }
 
         if ($globals_off || $long_arrays_off) {
-            $retval .= '<p><font color="red"><strong>Note:</strong> You have '
+            $retval .= '<p><strong>Note:</strong> You have '
                     . $warn_message .' in your <tt>php.ini</tt>. While Geeklog itself will work just fine with that setting, some of the available plugins and add-ons may not. You may want to set '
-                    . $help_message . ' (and restart your webserver) if you plan to install any of those add-ons.</font></p>' . LB;
+                    . $help_message . ' (and restart your webserver) if you plan to install any of those add-ons.</p>' . LB;
             $retval .= '<p>If you don\'t know where your <tt>php.ini</tt> file is located, please <a href="info.php">click here</a>.</p>' . LB;
         }
     }
