@@ -835,6 +835,7 @@ $_DATA[] = "INSERT INTO {$_TABLES['groups']} (grp_id, grp_name, grp_descr, grp_g
 $_DATA[] = "INSERT INTO {$_TABLES['groups']} (grp_id, grp_name, grp_descr, grp_gl_core) VALUES (16,'Remote Users', 'Users in this group can have authenticated against a remote server.',1) ";
 
 $_DATA[] = "INSERT INTO {$_TABLES['links']} (lid, category, url, description, title, date, owner_id, group_id) VALUES ('geeklog.net','Geeklog Sites','http://www.geeklog.net/','Visit the Geeklog homepage for support, FAQs, updates, add-ons, and a great community.','Geeklog Project Homepage',NOW(),1,5)";
+$_DATA[] = "INSERT INTO {$_TABLES['linksubmission']} (lid, category, url, description, title, date) VALUES ('geeklog-announce','Geeklog Sites','http://lists.geeklog.net/mailman/listinfo/geeklog-announce','Subscribe to the Geeklog Announcements mailing list to stay up to date on new Geeklog releases.','Geeklog Announcements Mailing List',NOW())";
 
 $_DATA[] = "INSERT INTO {$_TABLES['maillist']} (code, name) VALUES (0,'Don\'t Email') ";
 $_DATA[] = "INSERT INTO {$_TABLES['maillist']} (code, name) VALUES (1,'Email Headlines Each Night') ";
