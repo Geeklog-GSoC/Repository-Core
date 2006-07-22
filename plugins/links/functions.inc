@@ -42,7 +42,7 @@
 
 
 // Reminder: always indent with 4 spaces (no tabs).
-// $Id: functions.inc,v 1.49.2.1 2006/06/30 12:20:48 dhaun Exp $
+// $Id: functions.inc,v 1.49.2.2 2006/07/22 17:31:20 dhaun Exp $
 
 
 if (strpos ($_SERVER['PHP_SELF'], 'functions.inc') !== false) {
@@ -425,7 +425,8 @@ function plugin_dopluginsearch_links($query, $datestart, $dateend, $topic, $type
                 $profile = $submitter;
             }
             $linkUrl = COM_buildURL ($_CONF['site_url']
-                                     . '/links/index.php?page=' . $A['lid']);
+                                     . '/links/portal.php?what=link&amp;item='
+                                     . $A['lid']);
             $row = array ('<a href="' . $linkUrl . '">' . $A['title'] . '</a>',
                     $thetime[0], $profile, COM_NumberFormat ($A['hits']));
             $plugin_results->addSearchResult ($row);
