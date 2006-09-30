@@ -29,7 +29,7 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 // 
-// $Id: lib-trackback.php,v 1.23.2.5 2006/09/09 18:00:01 dhaun Exp $
+// $Id: lib-trackback.php,v 1.23.2.6 2006/09/30 17:18:21 dhaun Exp $
 
 if (strpos ($_SERVER['PHP_SELF'], 'lib-trackback.php') !== false) {
     die ('This file can not be used on its own!');
@@ -423,6 +423,45 @@ function TRB_formatComment ($url, $title = '', $blog = '', $excerpt = '', $date 
 }
 
 /**
+* Perform a backlink check on an HTML page
+*
+* @param    string  $body   complete HTML page to check
+* @return   boolean         true: found a link to us; false: no link to us
+*
+*/
+function TRB_containsBacklink ($body)
+{
+    global $_CONF;
+
+    if (($_CONF['check_trackback_link'] & 3) == 0) {
+        // we shouldn't be here - don't do anything
+        return true;
+    }
+
+    $retval = false;
+
+    preg_match_all ("/<a[^>]*href=[\"']([^\"']*)[\"'][^>]*>/i",
+                    $body, $matches);
+    for ($i = 0; $i < count ($matches[0]); $i++) {
+        if ($_CONF['check_trackback_link'] & 1) {
+            if (strpos ($matches[1][$i], $urlToCheck) === 0) {
+                // found it!
+                $retval = true;
+                break;
+            }
+        } else {
+            if ($matches[1][$i] == $urlToCheck) {
+                // found it!
+                $retval = true;
+                break;
+            }
+        }
+    }
+
+    return $retval;
+}
+
+/**
 * Check if a given web page links to us
 *
 * @param    string  $sid        ID of entry that got pinged
@@ -470,24 +509,7 @@ function TRB_linksToUs ($sid, $type, $urlToGet)
     } else {
         if ($req->getResponseCode () == 200) {
             $body = $req->getResponseBody ();
-
-            preg_match_all ("/<a[^>]*href=[\"']([^\"']*)[\"'][^>]*>/i",
-                            $body, $matches);
-            for ($i = 0; $i < count ($matches[0]); $i++) {
-                if ($_CONF['check_trackback_link'] & 1) {
-                    if (strpos ($matches[1][$i], $urlToCheck) === 0) {
-                        // found it!
-                        $retval = true;
-                        break;
-                    }
-                } else {
-                    if ($matches[1][$i] == $urlToCheck) {
-                        // found it!
-                        $retval = true;
-                        break;
-                    }
-                }
-            }
+            $retval = TRB_containsBacklink ($body);
         } else {
             COM_errorLog ("Trackback verification: Got HTTP response code "
                           . $req->getResponseCode ()
@@ -578,13 +600,21 @@ function TRB_handleTrackbackPing ($sid, $type = 'article')
 
         if ($_CONF['check_trackback_link'] & 4) {
             $parts = parse_url ($_POST['url']);
-            $ip = gethostbyname ($parts['host']);
-            if ($ip != $_SERVER['REMOTE_ADDR']) {
-                TRB_sendTrackbackResponse (1, $TRB_ERROR['spam'],
+            if (empty ($parts['host'])) {
+                TRB_sendTrackbackResponse (1, $TRB_ERROR['no_url'],
                                            403, 'Forbidden');
-                TRB_logRejected ('IP address mismatch', $_POST['url']);
+                TRB_logRejected ('No valid URL', $_POST['url']);
 
                 return false;
+            } else {
+                $ip = gethostbyname ($parts['host']);
+                if ($ip != $_SERVER['REMOTE_ADDR']) {
+                    TRB_sendTrackbackResponse (1, $TRB_ERROR['spam'],
+                                               403, 'Forbidden');
+                    TRB_logRejected ('IP address mismatch', $_POST['url']);
+
+                    return false;
+                }
             }
         }
 
