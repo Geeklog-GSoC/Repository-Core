@@ -29,7 +29,7 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 // 
-// $Id: pingback.php,v 1.12.2.1 2006/09/30 17:31:00 dhaun Exp $
+// $Id: pingback.php,v 1.12.2.2 2006/09/30 19:22:21 dhaun Exp $
 
 require_once ('lib-common.php');
 
@@ -62,10 +62,12 @@ $PNB_ERROR = array (
 *
 * @param    string  $id     ID of entry that got pinged
 * @param    string  $type   type of that entry ('article' for stories, etc.)
+* @param    string  $url    URL of the page that pinged us
+* @param    string  $oururl URL that got pinged on our site
 * @return   object          XML-RPC response
 *
 */
-function PNB_handlePingback ($id, $type, $url)
+function PNB_handlePingback ($id, $type, $url, $oururl)
 {
     global $_CONF, $_TABLES, $PNB_ERROR;
 
@@ -137,7 +139,7 @@ function PNB_handlePingback ($id, $type, $url)
             $body = $req->getResponseBody ();
 
             if ($_CONF['check_trackback_link'] & 3) {
-                if (!TRB_containsBacklink ($body)) {
+                if (!TRB_containsBacklink ($body, $oururl)) {
                     TRB_logRejected ('Pingback: No link to us', $url);
 
                     return new XML_RPC_Response (0, 49, $PNB_ERROR['spam']);
@@ -332,7 +334,7 @@ function PNB_receivePing ($params)
         return new XML_RPC_Response (0, 49, $PNB_ERROR['no_access']);
     }
 
-    return PNB_handlePingback ($id, $type, $sourceURI);
+    return PNB_handlePingback ($id, $type, $sourceURI, $targetURI);
 }
 
 

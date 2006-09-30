@@ -29,7 +29,7 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 // 
-// $Id: lib-trackback.php,v 1.23.2.6 2006/09/30 17:18:21 dhaun Exp $
+// $Id: lib-trackback.php,v 1.23.2.7 2006/09/30 19:22:21 dhaun Exp $
 
 if (strpos ($_SERVER['PHP_SELF'], 'lib-trackback.php') !== false) {
     die ('This file can not be used on its own!');
@@ -425,11 +425,12 @@ function TRB_formatComment ($url, $title = '', $blog = '', $excerpt = '', $date 
 /**
 * Perform a backlink check on an HTML page
 *
-* @param    string  $body   complete HTML page to check
-* @return   boolean         true: found a link to us; false: no link to us
+* @param    string  $body       complete HTML page to check
+* @param    string  $urlToCheck URL to find in that page
+* @return   boolean             true: found a link to us; false: no link to us
 *
 */
-function TRB_containsBacklink ($body)
+function TRB_containsBacklink ($body, $urlToCheck)
 {
     global $_CONF;
 
@@ -509,7 +510,7 @@ function TRB_linksToUs ($sid, $type, $urlToGet)
     } else {
         if ($req->getResponseCode () == 200) {
             $body = $req->getResponseBody ();
-            $retval = TRB_containsBacklink ($body);
+            $retval = TRB_containsBacklink ($body, $urlToCheck);
         } else {
             COM_errorLog ("Trackback verification: Got HTTP response code "
                           . $req->getResponseCode ()
