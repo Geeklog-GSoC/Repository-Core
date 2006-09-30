@@ -29,7 +29,7 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 // 
-// $Id: pingback.php,v 1.12 2006/01/15 18:57:16 dhaun Exp $
+// $Id: pingback.php,v 1.12.2.1 2006/09/30 17:31:00 dhaun Exp $
 
 require_once ('lib-common.php');
 
@@ -71,6 +71,10 @@ function PNB_handlePingback ($id, $type, $url)
 
     require_once ('HTTP/Request.php');
 
+    if (!isset ($_CONF['check_trackback_link'])) {
+        $_CONF['check_trackback_link'] = 2;
+    }
+
     // handle pingbacks to articles on our own site
     $skip_speedlimit = false;
     if ($_SERVER['REMOTE_ADDR'] == $_SERVER['SERVER_ADDR']) {
@@ -95,15 +99,52 @@ function PNB_handlePingback ($id, $type, $url)
         }
     }
 
+    // update speed limit in any case
+    COM_updateSpeedlimit ('pingback');
+
+    if ($_SERVER['REMOTE_ADDR'] != $_SERVER['SERVER_ADDR']) {
+        if ($_CONF['check_trackback_link'] & 4) {
+            $parts = parse_url ($url);
+            if (empty ($parts['host'])) {
+                TRB_logRejected ('Pingback: No valid URL', $url);
+                return new XML_RPC_Response (0, 33, $PNB_ERROR['uri_invalid']);
+            } else {
+                $ip = gethostbyname ($parts['host']);
+                if ($ip != $_SERVER['REMOTE_ADDR']) {
+                    TRB_logRejected ('Pingback: IP address mismatch', $url);
+                    return new XML_RPC_Response (0, 49, $PNB_ERROR['spam']);
+                }
+            }
+        }
+    }
+
     // See if we can read the page linking to us and extract at least
     // the page's title out of it ...
     $title = '';
-    $req =& new HTTP_Request ($url);
-    $req->addHeader ('User-Agent', 'GeekLog ' . VERSION);
-    if (!PEAR::isError ($req->sendRequest ())) {
+    $req = new HTTP_Request ($url);
+    $req->addHeader ('User-Agent', 'GeekLog/' . VERSION);
+    $response = $req->sendRequest ();
+    if (PEAR::isError ($response)) {
+        if ($_CONF['check_trackback_link'] & 3) {
+            // we were supposed to check for backlinks but didn't get the page
+            COM_errorLog ("Pingback verification: " . $response->getMessage()
+                          . " when requesting $url");
+            return new XML_RPC_Response (0, 33, $PNB_ERROR['uri_invalid']);
+        }
+        // else: silently ignore errors - we'll simply do without the title
+    } else {
         if ($req->getResponseCode () == 200) {
-            preg_match (':<title>(.*)</title>:i', $req->getResponseBody (),
-                        $content);
+            $body = $req->getResponseBody ();
+
+            if ($_CONF['check_trackback_link'] & 3) {
+                if (!TRB_containsBacklink ($body)) {
+                    TRB_logRejected ('Pingback: No link to us', $url);
+
+                    return new XML_RPC_Response (0, 49, $PNB_ERROR['spam']);
+                }
+            }
+
+            preg_match (':<title>(.*)</title>:i', $body, $content);
             if (empty ($content[1])) {
                 $title = ''; // no title found
             } else {
@@ -112,15 +153,17 @@ function PNB_handlePingback ($id, $type, $url)
 
             // we could also run the rest of the other site's page
             // through the spam filter here ...
+        } else if ($_CONF['check_trackback_link'] & 3) {
+            COM_errorLog ("Pingback verification: Got HTTP response code "
+                          . $req->getResponseCode ()
+                          . " when requesting $url");
+            return new XML_RPC_Response (0, 33, $PNB_ERROR['uri_invalid']);
         }
+        // else: silently ignore errors - we'll simply do without the title
     }
-    // else: silently ignore errors - we'll simply do without the title
 
     // check for spam first
     $saved = TRB_checkForSpam ($url, $title);
-
-    // update speed limit in any case
-    COM_updateSpeedlimit ('pingback');
 
     if ($saved == TRB_SAVE_SPAM) {
         return new XML_RPC_Response (0, 49, $PNB_ERROR['spam']);
