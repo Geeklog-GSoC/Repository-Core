@@ -40,7 +40,7 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 //
-// $Id: lib-custom.php,v 1.18.2.1 2006/06/30 12:20:48 dhaun Exp $
+// $Id: lib-custom.php,v 1.18.2.2 2006/10/07 14:58:33 dhaun Exp $
 
 if (strpos ($_SERVER['PHP_SELF'], 'lib-custom.php') !== false) {               
     die ('This file can not be used on its own!');
@@ -260,7 +260,15 @@ function custom_usersave($uid)
 {
     global $_CONF, $_TABLES;
 
-    DB_query("UPDATE {$_TABLES['users']} SET cookietimeout='{$_POST["cooktime"]}'");
+    $cooktime = 0;
+    if (isset ($_POST['cooktime'])) {
+        $cooktime = COM_applyFilter ($_POST['cooktime'], true);
+        if ($cooktime < 0) {
+            $cooktime = 0;
+        }
+
+        DB_query("UPDATE {$_TABLES['users']} SET cookietimeout = $cooktime WHERE uid = $uid");
+    }
 }
 
 
