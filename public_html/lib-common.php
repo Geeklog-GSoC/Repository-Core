@@ -33,7 +33,7 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 //
-// $Id: lib-common.php,v 1.514 2006/02/18 14:18:29 dhaun Exp $
+// $Id: lib-common.php,v 1.514.2.1 2006/10/07 14:17:48 dhaun Exp $
 
 // Prevent PHP from reporting uninitialized variables
 error_reporting( E_ERROR | E_WARNING | E_PARSE | E_COMPILE_ERROR );
@@ -5234,7 +5234,8 @@ function COM_highlightQuery( $text, $query )
     {
         if( !empty( $searchword ))
         {
-            $text = preg_replace( '/(\>(((?>[^><]+)|(?R))*)\<)/ie', "preg_replace('/(?>$searchword+)/i','<span class=\"highlight\">$searchword</span>','\\0')", '<x>' . $text . '<x>' );
+            $searchword = preg_quote( str_replace( "'", "\'", $searchword ));
+            $text = preg_replace( '/(\>(((?>[^><]+)|(?R))*)\<)/ie', "preg_replace('/(?>$searchword+)/i','<span class=\"highlight\">$searchword</span>','\\0')", '<!-- x -->' . $text . '<!-- x -->' );
         }
     }
 
