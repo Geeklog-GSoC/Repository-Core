@@ -33,7 +33,7 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 //
-// $Id: lib-common.php,v 1.514.2.1 2006/10/07 14:17:48 dhaun Exp $
+// $Id: lib-common.php,v 1.514.2.2 2006/10/07 14:28:34 dhaun Exp $
 
 // Prevent PHP from reporting uninitialized variables
 error_reporting( E_ERROR | E_WARNING | E_PARSE | E_COMPILE_ERROR );
@@ -2150,7 +2150,7 @@ function COM_adminMenu( $help = '', $title = '' )
     $plugin_options = PLG_getAdminOptions();
     $nrows = count( $plugin_options );
 
-    if( SEC_isModerator() OR SEC_hasrights( 'story.edit,block.edit,topic.edit,event.edit,user.edit,plugin.edit,user.mail', 'OR' ) OR ( $nrows > 0 ))
+    if( SEC_isModerator() OR SEC_hasRights( 'story.edit,block.edit,topic.edit,event.edit,user.edit,plugin.edit,user.mail', 'OR' ) OR ( $nrows > 0 ))
     {
         // what's our current URL?
         $thisUrl = COM_getCurrentURL();
@@ -2181,7 +2181,7 @@ function COM_adminMenu( $help = '', $title = '' )
                            COM_getBlockTemplate( 'admin_block', 'header' ));
 
         $topicsql = '';
-        if( SEC_isModerator() || SEC_hasrights( 'story.edit' ))
+        if( SEC_isModerator() || SEC_hasRights( 'story.edit' ))
         {
             $tresult = DB_query( "SELECT tid FROM {$_TABLES['topics']}"
                                  . COM_getPermSQL() );
@@ -2205,7 +2205,7 @@ function COM_adminMenu( $help = '', $title = '' )
         {
             $num = 0;
 
-            if( SEC_hasrights( 'story.edit' ))
+            if( SEC_hasRights( 'story.edit' ))
             {
                 if( empty( $topicsql ))
                 {
@@ -2231,7 +2231,7 @@ function COM_adminMenu( $help = '', $title = '' )
                 }
             }
 
-            if( SEC_hasrights( 'event.edit' ))
+            if( SEC_hasRights( 'event.edit' ))
             {
                 $num += DB_count( $_TABLES['eventsubmission'] );
             }
@@ -2239,7 +2239,7 @@ function COM_adminMenu( $help = '', $title = '' )
 
             if( $_CONF['usersubmission'] == 1 )
             {
-                if( SEC_hasrights( 'user.edit' ) && SEC_hasrights( 'user.delete' ))
+                if( SEC_hasRights( 'user.edit' ) && SEC_hasRights( 'user.delete' ))
                 {
                     $emptypwd = md5( '' );
                     $num += DB_count( $_TABLES['users'], 'status', '2' );
@@ -2259,7 +2259,7 @@ function COM_adminMenu( $help = '', $title = '' )
             $link_array[$LANG01[10]] = $menu_item;
         }
 
-        if( SEC_hasrights( 'story.edit' ))
+        if( SEC_hasRights( 'story.edit' ))
         {
             $url = $_CONF['site_admin_url'] . '/story.php';
             $adminmenu->set_var( 'option_url', $url );
@@ -2270,7 +2270,7 @@ function COM_adminMenu( $help = '', $title = '' )
             }
             else
             {
-                $nresult = DB_query( "SELECT COUNT(*) AS count from {$_TABLES['stories']} WHERE" . $topicsql );
+                $nresult = DB_query( "SELECT COUNT(*) AS count from {$_TABLES['stories']} WHERE" . $topicsql . COM_getPermSql( 'AND' ));
                 $N = DB_fetchArray( $nresult );
                 $numstories = $N['count'];
             }
@@ -2281,46 +2281,52 @@ function COM_adminMenu( $help = '', $title = '' )
             $link_array[$LANG01[11]] = $menu_item;
         }
 
-        if( SEC_hasrights( 'block.edit' ))
+        if( SEC_hasRights( 'block.edit' ))
         {
+            $result = DB_query( "SELECT COUNT(*) AS count FROM {$_TABLES['blocks']}" . COM_getPermSql());
+            list( $count ) = DB_fetchArray( $result );
+
             $url = $_CONF['site_admin_url'] . '/block.php';
             $adminmenu->set_var( 'option_url', $url );
             $adminmenu->set_var( 'option_label', $LANG01[12] );
-            $adminmenu->set_var( 'option_count',
-                    COM_numberFormat( DB_count( $_TABLES['blocks'] )));
+            $adminmenu->set_var( 'option_count', COM_numberFormat( $count ));
 
             $menu_item = $adminmenu->parse( 'item',
                     ( $thisUrl == $url ) ? 'current' : 'option' );
             $link_array[$LANG01[12]] = $menu_item;
         }
 
-        if( SEC_hasrights( 'topic.edit' ))
+        if( SEC_hasRights( 'topic.edit' ))
         {
+            $result = DB_query( "SELECT COUNT(*) AS count FROM {$_TABLES['topics']}" . COM_getPermSql());
+            list( $count ) = DB_fetchArray( $result );
+
             $url = $_CONF['site_admin_url'] . '/topic.php';
             $adminmenu->set_var( 'option_url', $url );
             $adminmenu->set_var( 'option_label', $LANG01[13] );
-            $adminmenu->set_var( 'option_count',
-                    COM_numberFormat( DB_count( $_TABLES['topics'] )));
+            $adminmenu->set_var( 'option_count', COM_numberFormat( $count ));
 
             $menu_item = $adminmenu->parse( 'item',
                     ( $thisUrl == $url ) ? 'current' : 'option' );
             $link_array[$LANG01[13]] = $menu_item;
         }
 
-        if( SEC_hasrights( 'event.edit' ))
+        if( SEC_hasRights( 'event.edit' ))
         {
+            $result = DB_query( "SELECT COUNT(*) AS count FROM {$_TABLES['events']}" . COM_getPermSql());
+            list( $count ) = DB_fetchArray( $result );
+
             $url = $_CONF['site_admin_url'] . '/event.php';
             $adminmenu->set_var( 'option_url', $url );
             $adminmenu->set_var( 'option_label', $LANG01[15] );
-            $adminmenu->set_var( 'option_count',
-                    COM_numberFormat( DB_count( $_TABLES['events'] )));
+            $adminmenu->set_var( 'option_count', COM_numberFormat( $count ));
 
             $menu_item = $adminmenu->parse( 'item',
                     ( $thisUrl == $url ) ? 'current' : 'option' );
             $link_array[$LANG01[15]] = $menu_item;
         }
 
-        if( SEC_hasrights( 'user.edit' ))
+        if( SEC_hasRights( 'user.edit' ))
         {
             $url = $_CONF['site_admin_url'] . '/user.php';
             $adminmenu->set_var( 'option_url', $url );
@@ -2333,7 +2339,7 @@ function COM_adminMenu( $help = '', $title = '' )
             $link_array[$LANG01[17]] = $menu_item;
         }
 
-        if( SEC_hasrights( 'group.edit' ))
+        if( SEC_hasRights( 'group.edit' ))
         {
             $thisUsersGroups = SEC_getUserGroups();
             $grp_list = implode( ',', $thisUsersGroups );
@@ -2351,7 +2357,7 @@ function COM_adminMenu( $help = '', $title = '' )
             $link_array[$LANG01[96]] = $menu_item;
         }
 
-        if( SEC_hasrights( 'user.mail' ))
+        if( SEC_hasRights( 'user.mail' ))
         {
             $url = $_CONF['site_admin_url'] . '/mail.php';
             $adminmenu->set_var( 'option_url', $url );
