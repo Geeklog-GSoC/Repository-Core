@@ -33,7 +33,7 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 //
-// $Id: lib-comment.php,v 1.28.2.3 2006/07/22 14:12:03 dhaun Exp $
+// $Id: lib-comment.php,v 1.28.2.4 2006/11/12 19:45:53 dhaun Exp $
 
 if (strpos ($_SERVER['PHP_SELF'], 'lib-comment.php') !== false) {
     die ('This file can not be used on its own!');
@@ -809,8 +809,9 @@ function CMT_saveComment ($title, $comment, $sid, $pid, $type, $postmode) {
         return $ret = 3;
     }
 
-    // Let plugins have a chance to check for SPAM
-    $result = PLG_checkforSpam($comment, $_CONF['spamx']);
+    // Let plugins have a chance to check for spam
+    $spamcheck = '<h1>' . $title . '</h1><p>' . $comment . '</p>';
+    $result = PLG_checkforSpam ($spamcheck, $_CONF['spamx']);
     // Now check the result and display message if spam action was taken
     if ($result > 0) {
         // update speed limit nonetheless
