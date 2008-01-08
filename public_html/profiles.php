@@ -9,7 +9,7 @@
 // | This pages lets GL users communicate with each other without risk of      |
 // | their email address being intercepted by spammers.                        |
 // +---------------------------------------------------------------------------+
-// | Copyright (C) 2000-2005 by the following authors:                         |
+// | Copyright (C) 2000-2008 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Mark Limburg      - mlimburg AT users DOT sourceforge DOT net    |
@@ -33,7 +33,7 @@
 // |                                                                           |
 // +---------------------------------------------------------------------------+
 //
-// $Id: profiles.php,v 1.46 2005/12/28 10:11:50 dhaun Exp $
+// $Id: profiles.php,v 1.46.2.1 2008/01/08 18:39:47 dhaun Exp $
 
 require_once ('lib-common.php');
 
@@ -409,16 +409,12 @@ switch ($what) {
                     || !COM_isEmail ($_POST['toemail'])
                     || !COM_isEmail ($_POST['fromemail'])) {
                 $display .= COM_siteHeader ('menu', $LANG08[17])
-                         . mailstoryform ($sid, $_POST['to'], $_POST['toemail'],
-                                          $_POST['from'], $_POST['fromemail'],
-                                          $_POST['shortmsg'], 52)
+                         . mailstoryform ($sid, COM_applyFilter($_POST['to']), COM_applyFilter($_POST['toemail']), COM_applyFilter($_POST['from']), COM_applyFilter($_POST['fromemail']), COM_applyFilter($_POST['shortmsg']), 52)
                          . COM_siteFooter ();
             } else if (empty ($_POST['to']) || empty ($_POST['from']) ||
                     empty ($_POST['shortmsg'])) {
                 $display .= COM_siteHeader ('menu', $LANG08[17])
-                         . mailstoryform ($sid, $_POST['to'], $_POST['toemail'],
-                                          $_POST['from'], $_POST['fromemail'],
-                                          $_POST['shortmsg'])
+                         . mailstoryform ($sid, COM_applyFilter($_POST['to']), COM_applyFilter($_POST['toemail']), COM_applyFilter($_POST['from']), COM_applyFilter($_POST['fromemail']), COM_applyFilter($_POST['shortmsg']))
                          . COM_siteFooter ();
             } else {
                 $display .= mailstory ($sid, $_POST['to'], $_POST['toemail'],

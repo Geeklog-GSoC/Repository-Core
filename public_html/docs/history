@@ -1,5 +1,12 @@
 GeekLog History/Changes:
 
+January 8, 2008 (1.4.0sr6)
+---------------
+
+MustLive pointed out a possible XSS in the form to email an article to a
+friend that we're fixing with this release.
+
+
 July 23, 2006 (1.4.0sr5-1)
 -------------
 
