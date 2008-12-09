@@ -8,21 +8,8 @@ Geeklog History/Changes:
   (reported and patch provided by hiroron, bug #0000778)
 - Removed rel="tag" from topic links in lib-story.php as that would indicate a
   Microformat with a slightly different meaning [Dirk]
-- Fixed inconsistencies and various small mistakes when displaying "Access
-  denied" messages on the admin pages [Dirk]
-- Added a print.css stylesheet to be used by the printable template files
-  (feature request #0000766) [Dirk]
-- Re-introduced the path hints in the install script when it can't find
-  db-config.php [Dirk]
-- Added a note about the max. dimensions of a userphoto in the About You pane
-  of a user's My Account page (feature request #0000629) [Dirk]
 - Don't include X-Originating-IP header in emails sent from the site's admin
   area (bug #0000701) [Dirk]
-- Display a message when no topics exist and don't let the user enter the story
-  editors (bug #0000738) [Dirk]
-- Improved image quality when using gdlib to rescale images. Also added a
-  configuration option to control the JPEG quality (Feature request #0000720)
-  [Dirk]
 - Check if COM_errorLog exists before using it in the config class (for possible
   problems during installation, bug #0000768) [Dirk]
 - Fixed filling out the Site Email / No-Reply Email fields in the install
@@ -74,30 +61,22 @@ Calendar plugin
 
 Links plugin
 ------------
-- Added an option to allow opening external links in a new window (feature
-  request #0000693). Use with care, please [Dirk]
-- Only external links are marked with class="ext-link" [Dirk]
 - Added urlencoded versions of {link_actual_url} and {link_name} [Dirk]
 - Prevent overwriting existing links when changing the link ID [Dirk]
 
 Polls plugin
 ------------
-- Extended length of poll IDs to 40 characters (feature request #0000754) [Dirk]
 - Fixed SQL error when poll questions contained single quotes (bug #0000756)
   [Dirk]
 - Fixed handling of poll IDs in Polls editor (bug #0000753) [Dirk]
-
+ 
 Static Pages plugin
 -------------------
 - The owner of a static page changed to the user who last edited it
   (bug #0000777) [Dirk]
-- The printable.thtml template file uses the HTML Strict doctype and print.css
-  now [Dirk]
 - Fixed call to WS_makeId when sp_id was longer than STATICPAGE_MAX_ID_LENGTH
   (found by Marc Maier) [Dirk]
-- Display "successfully saved" and "successfully deleted" messages, just like
-  every other plugin and built-in function does (bug #0000644) [Dirk]
-
+ 
 
 Sep 22, 2008 (1.5.1)
 ------------
