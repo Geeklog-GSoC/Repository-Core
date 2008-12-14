@@ -116,9 +116,6 @@ $LANG_STATIC = array(
     'submit' => '登録'
 );
 
-$PLG_staticpages_MESSAGE19 = '静的ページを保存しました。';
-$PLG_staticpages_MESSAGE20 = '静的ページを削除しました。';
-
 // Messages for the plugin upgrade
 $PLG_staticpages_MESSAGE3001 = 'プラグインのアップグレードはサポートされていません。';
 $PLG_staticpages_MESSAGE3002 = $LANG32[9];
