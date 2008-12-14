@@ -44,7 +44,7 @@ $display = '';
 
 if (!SEC_hasRights('polls.edit')) {
     $display .= COM_siteHeader('menu', $MESSAGE[30])
-             . COM_showMessageText($MESSAGE[29], $MESSAGE[30])
+             . COM_showMessageText($MESSAGE[36], $MESSAGE[30])
              . COM_siteFooter();
     COM_accessLog("User {$_USER['username']} tried to illegally access the poll administration screen.");
     echo $display;
@@ -210,7 +210,7 @@ function savepoll($pid, $old_pid, $Q, $mainpage, $topic, $statuscode, $open,
     }
     if (($access < 3) || !SEC_inGroup($group_id)) {
         $display .= COM_siteHeader('menu', $MESSAGE[30])
-                 . COM_showMessageText($MESSAGE[29], $MESSAGE[30])
+                 . COM_showMessageText($MESSAGE[31], $MESSAGE[30])
                  . COM_siteFooter();
         COM_accessLog("User {$_USER['username']} tried to illegally submit or edit poll $pid.");
         echo $display;

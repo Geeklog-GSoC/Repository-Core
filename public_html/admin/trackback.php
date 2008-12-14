@@ -46,10 +46,13 @@ if (!$_CONF['trackback_enabled'] && !$_CONF['pingback_enabled'] &&
 
 $display = '';
 
-if (!SEC_hasRights('story.ping')) {
-    $display .= COM_siteHeader('menu', $MESSAGE[30])
-             . COM_showMessageText($MESSAGE[29], $MESSAGE[30])
-             . COM_siteFooter();
+if (!SEC_hasRights ('story.ping')) {
+    $display .= COM_siteHeader ('menu', $MESSAGE[30]);
+    $display .= COM_startBlock ($MESSAGE[30], '',
+                                COM_getBlockTemplate ('_msg_block', 'header'));
+    $display .= $MESSAGE[34];
+    $display .= COM_endBlock (COM_getBlockTemplate ('_msg_block', 'footer'));
+    $display .= COM_siteFooter ();
     COM_accessLog("User {$_USER['username']} tried to illegally access the trackback administration screen.");
     echo $display;
     exit;
@@ -1125,7 +1128,13 @@ if (($mode == 'delete') && SEC_checkToken()) {
              . COM_siteFooter ();
 } else if (($mode == 'fresh') || ($mode == 'preview')) {
     $display .= COM_siteHeader ('menu', $LANG_TRB['trackback']);
-    $display .= COM_showMessageFromParameter();
+
+    if (isset ($_REQUEST['msg'])) {
+        $msg = COM_applyFilter ($_REQUEST['msg'], true);
+        if ($msg > 0) {
+            $display .= COM_showMessage ($msg);
+        }
+    }
 
     $target = '';
     if (isset ($_REQUEST['target'])) {
@@ -1207,13 +1216,14 @@ if (($mode == 'delete') && SEC_checkToken()) {
 
     $display .= editServiceForm ($pid);
 } else if ($mode == 'listservice') {
-    $display .= COM_siteHeader('menu', $LANG_TRB['services_headline']);
-    $display .= COM_showMessageFromParameter();
-    $display .= listServices();
+    $display .= COM_siteHeader ('menu', $LANG_TRB['services_headline']);
+    if (isset ($_REQUEST['msg'])) {
+        $display .= COM_showMessage (COM_applyFilter ($_REQUEST['msg'], true));
+    }
+    $display .= listServices ();
     $display .= COM_siteFooter();
 } else if ($mode == 'freepb') {
     $display .= COM_siteHeader ('menu', $LANG_TRB['pingback']);
-    $display .= COM_showMessageFromParameter();
     $display .= pingbackForm ();
     $display .= COM_siteFooter();
 } else if ($mode == 'sendpingback') {

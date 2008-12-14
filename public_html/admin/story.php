@@ -60,9 +60,12 @@ $_STORY_VERBOSE = false;
 $display = '';
 
 if (!SEC_hasRights('story.edit')) {
-    $display .= COM_siteHeader('menu', $MESSAGE[30])
-             . COM_showMessageText($MESSAGE[29], $MESSAGE[30])
-             . COM_siteFooter();
+    $display .= COM_siteHeader ('menu', $MESSAGE[30]);
+    $display .= COM_startBlock ($MESSAGE[30], '',
+                                COM_getBlockTemplate ('_msg_block', 'header'));
+    $display .= $MESSAGE[31];
+    $display .= COM_endBlock (COM_getBlockTemplate ('_msg_block', 'footer'));
+    $display .= COM_siteFooter ();
     COM_accessLog("User {$_USER['username']} tried to illegally access the story administration screen.");
     echo $display;
     exit;
@@ -140,17 +143,10 @@ function liststories()
                 $seltopics .= '>' . $T['topic'] . '</option>' . LB;
             }
             $excludetopics .= ') ';
-        } else {
-            $retval .= COM_showMessage(101);
-            return $retval;
         }
     } else {
         $excludetopics = " tid = '$current_topic' ";
         $seltopics = COM_topicList ('tid,topic', $current_topic, 1, true);
-        if (empty($seltopics)) {
-            $retval .= COM_showMessage(101);
-            return $retval;
-        }
     }
 
     $alltopics = '<option value="' .$LANG09[9]. '"';
@@ -374,6 +370,8 @@ function storyeditor($sid = '', $mode = '', $errormsg = '', $currenttopic = '')
         $story_templates->set_var ('navbar', $navbar->generate() );
     }
 
+    $display .= COM_startBlock ($LANG24[5], '',
+                        COM_getBlockTemplate ('_admin_block', 'header'));
     $oldsid = $story->EditElements('originalSid');
     if (!empty ($oldsid)) {
         $delbutton = '<input type="submit" value="' . $LANG_ADMIN['delete']
@@ -511,21 +509,24 @@ function storyeditor($sid = '', $mode = '', $errormsg = '', $currenttopic = '')
     $story_templates->set_var('lang_optionarchive', $LANG24[61]);
     $story_templates->set_var('lang_optiondelete', $LANG24[62]);
     $story_templates->set_var('lang_title', $LANG_ADMIN['title']);
-    $story_templates->set_var('story_title', $story->EditElements('title'));
+//    if ($A['postmode'] == 'plaintext') {
+//        $A['title'] = str_replace ('$', '&#36;', $A['title']);
+//    }
+//
+//    $A['title'] = str_replace('{','&#123;',$A['title']);
+//    $A['title'] = str_replace('}','&#125;',$A['title']);
+//    $A['title'] = str_replace('"','&quot;',$A['title']);
+    $story_templates->set_var('story_title', $story->EditElements('title'));//stripslashes ($A['title']));
     $story_templates->set_var('lang_topic', $LANG_ADMIN['topic']);
-    if(empty($currenttopic) && ($story->EditElements('tid') == '')) {
-        $story->setTid(DB_getItem($_TABLES['topics'], 'tid',
-                                  'is_default = 1' . COM_getPermSQL('AND')));
-    } elseif ($story->EditElements('tid') == '') {
+    if(empty($currenttopic) && ($story->EditElements('tid') == ''))
+    {
+        $story->setTid( DB_getItem ($_TABLES['topics'], 'tid',
+                                'is_default = 1' . COM_getPermSQL ('AND')));
+    } else if ($story->EditElements('tid') == '') {
         $story->setTid($currenttopic);
     }
-
-    $tlist = COM_topicList('tid,topic', $story->EditElements('tid'), 1, true);
-    if (empty($tlist)) {
-        $display .= COM_showMessage(101);
-        return $display;
-    }
-    $story_templates->set_var('topic_options', $tlist);
+    $story_templates->set_var ('topic_options',
+                               COM_topicList ('tid,topic', $story->EditElements('tid'), 1, true));
     $story_templates->set_var('lang_show_topic_icon', $LANG24[56]);
     if ($story->EditElements('show_topic_icon') == 1) {
         $story_templates->set_var('show_topic_icon_checked', 'checked="checked"');
@@ -640,9 +641,6 @@ function storyeditor($sid = '', $mode = '', $errormsg = '', $currenttopic = '')
     $story_templates->set_var('gltoken_name', CSRF_TOKEN);
     $story_templates->set_var('gltoken', SEC_createToken());
     $story_templates->parse('output','editor');
-
-    $display .= COM_startBlock ($LANG24[5], '',
-                        COM_getBlockTemplate ('_admin_block', 'header'));
     $display .= $story_templates->finish($story_templates->get_var('output'));
     $display .= COM_endBlock (COM_getBlockTemplate ('_admin_block', 'footer'));
 
@@ -787,7 +785,11 @@ if (($mode == $LANG_ADMIN['delete']) && !empty ($LANG_ADMIN['delete'])) {
         $display = COM_refresh ($_CONF['site_admin_url'] . '/moderation.php');
     } else {
         $display .= COM_siteHeader('menu', $LANG24[22]);
-        $display .= COM_showMessageFromParameter();
+        $msg = "";
+        if (isset($_GET['msg'])) {
+            $msg = COM_applyFilter($_GET['msg'], true);
+            $display .= COM_showMessage($msg);
+        }
         $display .= liststories();
         $display .= COM_siteFooter();
     }

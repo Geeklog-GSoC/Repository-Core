@@ -925,19 +925,6 @@ running on a MySQL database. They are ignored when using MS SQL.</p>
     enables the <code>[unscaled<i>X</i>]</code> image tag (in addition to the
     <code>[image<i>X</i>]</code> tag).</td></tr>
 <tr>
-  <td valign="top"><a name="desc_jpeg_quality">jpeg_quality</a></td>
-  <td valign="top"><i>(disabled)</i></td>
-  <td valign="top">Control the image quality when resizing JPEGs. All the image
-    libraries supported by Geeklog are based on the IJG JPEG library which uses
-    an arbitrary range of 0-100 to specify the "quality" (note that this is
-    <em>not</em> a percent value). The default, when not set, is 75 which
-    provides good quality in most cases. In some cases, higher values may
-    provide better results.<br>
-    Rules of thumb: Values above 90 usually don't improve the image quality any
-    more but only produce larger files. Values below 50 will result in poor
-    image quality. Values of 25 and below will produce distorted
-    images.</td></tr>
-<tr>
   <td valign="top"><a name="desc_debug_image_upload">debug_image_upload</a></td>
   <td valign="top"><i>(disabled)</i></td>
   <td valign="top">When enabled and set to <code>true</code>, this option

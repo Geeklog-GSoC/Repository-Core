@@ -38,12 +38,13 @@ require_once '../lib-common.php';
 require_once 'auth.inc.php';
 require_once $_CONF['path_system'] . 'lib-story.php';
 
-$display = '';
-
 if (!SEC_hasRights('topic.edit')) {
-    $display .= COM_siteHeader('menu', $MESSAGE[30])
-             . COM_showMessageText($MESSAGE[29], $MESSAGE[30])
-             . COM_siteFooter();
+    $display = COM_siteHeader ('menu', $MESSAGE[30]);
+    $display .= COM_startBlock ($MESSAGE[30], '',
+                                COM_getBlockTemplate ('_msg_block', 'header'));
+    $display .= $MESSAGE[32];
+    $display .= COM_endBlock (COM_getBlockTemplate ('_msg_block', 'footer'));
+    $display .= COM_siteFooter ();
     COM_accessLog("User {$_USER['username']} tried to illegally access the topic administration screen.");
     echo $display;
     exit;
@@ -242,10 +243,13 @@ function savetopic($tid,$topic,$imageurl,$sortnum,$limitnews,$owner_id,$group_id
         $access = SEC_hasAccess ($owner_id, $group_id, $perm_owner, $perm_group,
                 $perm_members, $perm_anon);
     }
-    if (($access < 3) || !SEC_inGroup($group_id)) {
-        $retval .= COM_siteHeader('menu', $MESSAGE[30])
-                . COM_showMessageText($MESSAGE[29], $MESSAGE[30])
-                . COM_siteFooter();
+    if (($access < 3) || !SEC_inGroup ($group_id)) {
+        $retval .= COM_siteHeader ('menu', $MESSAGE[30]);
+        $retval .= COM_startBlock ($MESSAGE[30], '',
+                            COM_getBlockTemplate ('_msg_block', 'header'));
+        $retval .= $MESSAGE[32];
+        $retval .= COM_endBlock (COM_getBlockTemplate ('_msg_block', 'footer'));
+        $retval .= COM_siteFooter ();
         COM_accessLog("User {$_USER['username']} tried to illegally create or edit topic $tid.");
     } elseif (!empty($tid) && !empty($topic)) {
         if ($imageurl == '/images/topics/') {
@@ -472,9 +476,6 @@ function handleIconUpload($tid)
             $upload->setLogFile ($_CONF['path'] . 'logs/error.log');
             $upload->setDebug (true);
         }
-        if (isset($_CONF['jpeg_quality'])) {
-            $upload->setJpegQuality($_CONF['jpeg_quality']);
-        }
     }
     $upload->setAllowedMimeTypes (array ('image/gif'   => '.gif',
                                          'image/jpeg'  => '.jpg,.jpeg',
@@ -594,7 +595,9 @@ if (($mode == $LANG_ADMIN['delete']) && !empty ($LANG_ADMIN['delete'])) {
     $display .= COM_siteFooter();
 } else { // 'cancel' or no mode at all
     $display .= COM_siteHeader('menu', $LANG27[8]);
-    $display .= COM_showMessageFromParameter();
+    if (isset ($_GET['msg'])) {
+        $display .= COM_showMessage (COM_applyFilter ($_GET['msg'], true));
+    }
     $display .= listtopics();
     $display .= COM_siteFooter();
 }

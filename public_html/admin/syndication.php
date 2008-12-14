@@ -35,12 +35,13 @@
 require_once '../lib-common.php';
 require_once 'auth.inc.php';
 
-$display = '';
-
-if (!SEC_hasRights('syndication.edit')) {
-    $display .= COM_siteHeader('menu', $MESSAGE[30])
-             . COM_showMessageText($MESSAGE[29], $MESSAGE[30])
-             . COM_siteFooter();
+if (!SEC_hasRights ('syndication.edit')) {
+    $display .= COM_siteHeader ('menu', $MESSAGE[30])
+        . COM_startBlock ($MESSAGE[30], '',
+                          COM_getBlockTemplate ('_msg_block', 'header'))
+        . $MESSAGE[34]
+        . COM_endBlock (COM_getBlockTemplate ('_msg_block', 'footer'))
+        . COM_siteFooter ();
     COM_accessLog("User {$_USER['username']} tried to illegally access the content syndication administration screen.");
     echo $display;
     exit;
@@ -581,7 +582,8 @@ elseif (($mode == $LANG_ADMIN['save']) && !empty($LANG_ADMIN['save']) && SEC_che
 {
     $display .= savefeed($_POST);
 }
-elseif (($mode == $LANG_ADMIN['delete']) && !empty($LANG_ADMIN['delete']) && SEC_checkToken()) {
+elseif (($mode == $LANG_ADMIN['delete']) && !empty($LANG_ADMIN['delete']) && SEC_checkToken())
+{
     $fid = 0;
     if (isset($_POST['fid'])) {
         $fid = COM_applyFilter($_POST['fid'], true);
@@ -590,12 +592,13 @@ elseif (($mode == $LANG_ADMIN['delete']) && !empty($LANG_ADMIN['delete']) && SEC
 }
 else
 {
-    $display .= COM_siteHeader('menu', $LANG33[10]);
-    $display .= COM_showMessageFromParameter();
+    $display .= COM_siteHeader ('menu', $LANG33[10]);
+    if (isset ($_REQUEST['msg'])) {
+        $display .= COM_showMessage (COM_applyFilter($_REQUEST['msg']));
+    }
     $display .= listfeeds();
-    $display .= COM_siteFooter();
+    $display .= COM_siteFooter ();
 }
 
 echo $display;
-
 ?>

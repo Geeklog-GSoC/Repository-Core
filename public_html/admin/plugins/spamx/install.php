@@ -88,10 +88,6 @@ function plugin_compatible_with_this_geeklog_version()
         return true;
     }
 
-    if (function_exists('COM_showMessageText')) {
-        return true;
-    }
-
     return false;
 }
 
