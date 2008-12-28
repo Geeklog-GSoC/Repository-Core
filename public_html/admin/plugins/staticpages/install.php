@@ -63,7 +63,7 @@ $GROUPS[$pi_admin] = 'Users in this group can administer the Static Pages plugin
 $FEATURES = array();
 $FEATURES['staticpages.edit']    = 'Access to Static Pages editor';
 $FEATURES['staticpages.delete']  = 'Ability to delete static pages';
-$FEATURES['staticpages.PHP']     = 'Ability use PHP in static pages';
+$FEATURES['staticpages.PHP']     = 'Ability to use PHP in static pages';
 
 $MAPPINGS = array();
 $MAPPINGS['staticpages.edit']       = array ($pi_admin);
