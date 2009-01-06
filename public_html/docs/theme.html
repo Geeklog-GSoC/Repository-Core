@@ -217,6 +217,9 @@ themes.</p>
 <li>The <code>{site_admin_url}</code> was missing from the Configuration form
     action in <tt>admin/config/configuration.thtml</tt>. This may have caused
     problems making configuration changes on some setups.</li>
+<li>Added a hidden <code>old_pid</code> input field to the polls editor template
+    file, <tt>plugins/polls/templates/admin/polleditor.thtml</tt>, to fix
+    problems when changing a poll's ID.</li>
 </ul>
 
 <h3>Other changes</h3>
