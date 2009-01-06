@@ -1,13 +1,22 @@
 Geeklog History/Changes:
 
-??? ??, 2008 (1.5.2)
+Jan ??, 2009 (1.5.2)
 ------------
 
+- Added "Send Pings" to the Story Options block (if enabled and allowed for the
+  current user) [Dirk]
+- Don't let the user enable plugins when there's no functions.inc for the
+  plugin [Dirk]
+- When the install script can't find db-config.php, that message was always
+  displayed in English, i.e. you could not change the language for that screen
+  [Dirk]
+- When upgrading from a Geeklog version prior to 1.5.0, the plugin config.php
+  files are no longer renamed [Dirk]
 - Admin lists allowed non-sortable columns to be sortable (reported and patch
   provided by hiroron, bug #0000791)
-- Fixed wrong use of COM_isAnonUser in COM_getPermSQL (since 1.5.0) [Dirk]
 - Fixed STORY_getItemInfo - need to check the draft flag and for a publish date
   in the future [mystral-kk, Dirk]
+- Fixed wrong use of COM_isAnonUser in COM_getPermSQL (since 1.5.0) [Dirk]
 - When calling COM_getYearFormOptions with a $startoffset parameter, the list
   of years was off by one (bug #0000783; patch provided by hiroron)
 - Fixed updating feeds after changing topic permissions (bug #0000779) [Dirk]
@@ -30,6 +39,9 @@ Geeklog History/Changes:
 - Saving a story tried to update a feed of type 'geeklog' instead of 'article'
   (reported by Tom Homer)
 - Delete a feed's file when deleting a feed (bug #0000758) [Dirk]
+- When using gdlib, use imagecopyresampled instead or imagecopyresized to scale
+  images. This should result in better image quality (part of Feature request
+  #0000720) [Dirk]
 - The {start_storylink_anchortag} variable in the story templates was missing
   a '>' (reported by Michael Brusletten) [Dirk]
 - Display a "Service" column in the Admin's list of users when remote auth is
