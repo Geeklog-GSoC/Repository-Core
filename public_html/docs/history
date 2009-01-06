@@ -90,6 +90,10 @@ Polls plugin
   [Dirk]
 - Fixed handling of poll IDs in Polls editor (bug #0000753) [Dirk]
  
+Spam-X
+------
+- Fixed compatibility check in the plugin install script [Dirk]
+
 Static Pages plugin
 -------------------
 - The owner of a static page changed to the user who last edited it

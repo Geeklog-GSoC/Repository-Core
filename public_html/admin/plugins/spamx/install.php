@@ -11,7 +11,7 @@
 // +---------------------------------------------------------------------------+
 // | Based on the Universal Plugin and prior work by the following authors:    |
 // |                                                                           |
-// | Copyright (C) 2002-2008 by the following authors:                         |
+// | Copyright (C) 2002-2009 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Tom Willett       - tom AT pigstye DOT net                       |
@@ -35,8 +35,6 @@
 // | Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.           |
 // |                                                                           |
 // +---------------------------------------------------------------------------+
-//
-// $Id: install.php,v 1.26 2008/05/23 13:36:12 dhaun Exp $
 
 require_once '../../../lib-common.php';
 
@@ -80,15 +78,15 @@ $DEFVALUES[] = "INSERT INTO {$_TABLES['vars']} VALUES ('spamx.counter', '0')";
 */
 function plugin_compatible_with_this_geeklog_version()
 {
-    if (function_exists('PLG_spamAction')) {
-        return true;
+    if (! function_exists('PLG_spamAction')) {
+        return false;
     }
 
-    if (function_exists('SEC_createToken')) {
-        return true;
+    if (! function_exists('SEC_createToken')) {
+        return false;
     }
 
-    return false;
+    return true;
 }
 
 /**
