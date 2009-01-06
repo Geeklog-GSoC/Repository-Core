@@ -8,7 +8,7 @@
 // |                                                                           |
 // | Story-related functions needed in more than one place.                    |
 // +---------------------------------------------------------------------------+
-// | Copyright (C) 2000-2008 by the following authors:                         |
+// | Copyright (C) 2000-2009 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Mark Limburg      - mlimburg AT users DOT sourceforge DOT net    |
@@ -32,8 +32,6 @@
 // | Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.           |
 // |                                                                           |
 // +---------------------------------------------------------------------------+
-//
-// $Id: lib-story.php,v 1.133 2008/09/21 08:37:12 dhaun Exp $
 
 if (strpos(strtolower($_SERVER['PHP_SELF']), 'lib-story.php') !== false) {
     die('This file can not be used on its own!');
@@ -727,7 +725,7 @@ function STORY_getItemInfo ($sid, $what)
     if (count ($fields) > 0) {
         $result = DB_query ("SELECT " . implode (',', $fields)
                     . " FROM {$_TABLES['stories']} WHERE sid = '$sid'"
-                    . ' AND (draft_flag = 0) AND (date <= NOW())';
+                    . ' AND (draft_flag = 0) AND (date <= NOW())'
                     . COM_getPermSql ('AND') . COM_getTopicSql ('AND'));
         $A = DB_fetchArray ($result);
     } else {
