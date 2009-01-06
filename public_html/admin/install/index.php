@@ -8,7 +8,7 @@
 // |                                                                           |
 // | Geeklog installation script.                                              |
 // +---------------------------------------------------------------------------+
-// | Copyright (C) 2000-2008 by the following authors:                         |
+// | Copyright (C) 2000-2009 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Mark Limburg      - mlimburg AT users DOT sourceforge DOT net    |
@@ -36,8 +36,6 @@
 // | You don't need to change anything in this file.                           |
 // | Please read docs/install.html which describes how to install Geeklog.     |
 // +---------------------------------------------------------------------------+
-//
-// $Id: index.php,v 1.55 2008/09/06 14:46:24 dhaun Exp $
 
 // this should help expose parse errors even when
 // display_errors is set to Off in php.ini
@@ -50,7 +48,7 @@ if (!defined("LB")) {
     define("LB", "\n");
 }
 if (!defined('VERSION')) {
-    define('VERSION', '1.5.1');
+    define('VERSION', '1.5.2');
 }
 if (!defined('XHTML')) {
     define('XHTML', ' /');
@@ -588,7 +586,7 @@ function INST_installEngine($install_type, $install_step)
                                           . '<p>' . $LANG_INSTALL[91] . '</p>';
                             } else {
 
-                                $old_versions = array('1.2.5-1','1.3','1.3.1','1.3.2','1.3.2-1','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.3.10','1.3.11','1.4.0','1.4.1','1.5.0');
+                                $old_versions = array('1.2.5-1','1.3','1.3.1','1.3.2','1.3.2-1','1.3.3','1.3.4','1.3.5','1.3.6','1.3.7','1.3.8','1.3.9','1.3.10','1.3.11','1.4.0','1.4.1','1.5.0','1.5.1');
                                 if (empty($curv)) {
                                     // If we were unable to determine the current GL
                                     // version is then ask the user what it is
@@ -944,6 +942,7 @@ function INST_identifyGeeklogVersion ()
 
     case 'mysql':
         $test = array(
+            '1.5.2'  => array("SELECT value FROM {$_TABLES['vars']} WHERE name = 'database_version'", '1.5.2'),
             '1.5.1'  => array("SELECT name FROM {$_TABLES['vars']} WHERE name = 'database_version'", 'database_version'),
             '1.5.0'  => array("DESCRIBE {$_TABLES['storysubmission']} bodytext",''),
             '1.4.1'  => array("SELECT ft_name FROM {$_TABLES['features']} WHERE ft_name = 'syndication.edit'", 'syndication.edit'),
@@ -966,6 +965,7 @@ function INST_identifyGeeklogVersion ()
 
     case 'mssql':
 	    $test = array(
+            '1.5.2'  => array("SELECT value FROM {$_TABLES['vars']} WHERE name = 'database_version'", '1.5.2'),
             '1.5.1'  => array("SELECT name FROM {$_TABLES['vars']} WHERE name = 'database_version'", 'database_version'),
             '1.5.0'  => array("SELECT c.name FROM syscolumns c JOIN sysobjects o ON o.id = c.id WHERE c.name='bodytext' AND o.name='{$_TABLES['storysubmission']}'",'bodytext'),
             '1.4.1'  => array("SELECT ft_name FROM {$_TABLES['features']} WHERE ft_name = 'syndication.edit'", 'syndication.edit')
@@ -1640,6 +1640,14 @@ function INST_doDatabaseUpgrades($current_gl_version, $use_innodb = false)
             INST_updateDB($_SQL);
 
             $current_gl_version = '1.5.1';
+            $_SQL = '';
+            break;
+
+        case '1.5.1':
+            require_once $_CONF['path'] . 'sql/updates/' . $_DB_dbms . '_1.5.1_to_1.5.2.php';
+            INST_updateDB($_SQL);
+
+            $current_gl_version = '1.5.2';
             $_SQL = '';
             break;
 

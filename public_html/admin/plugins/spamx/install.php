@@ -44,7 +44,7 @@ require_once '../../../lib-common.php';
 //
 $pi_display_name = 'Spam-X';
 $pi_name         = 'spamx';
-$pi_version      = '1.1.1';
+$pi_version      = '1.1.2';
 $gl_version      = '1.5.0';
 $pi_url          = 'http://www.pigstye.net/gplugs/staticpages/index.php/spamx';
 
