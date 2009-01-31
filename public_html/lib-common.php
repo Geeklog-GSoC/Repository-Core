@@ -6746,7 +6746,7 @@ function COM_renderWikiText($wikitext)
 
     require_once 'Text/Wiki.php';
 
-    $wiki = &new Text_Wiki();
+    $wiki = new Text_Wiki();
     $wiki->disableRule('wikilink');
     $wiki->disableRule('freelink');
     $wiki->disableRule('interwiki');
