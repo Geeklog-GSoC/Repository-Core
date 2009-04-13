@@ -1,5 +1,20 @@
 Geeklog History/Changes:
 
+Apr 13, 2009 (1.5.2sr3)
+------------
+
+This release addresses the following security issue:
+
+Bookoo of the Nine Situations Group posted another SQL injection exploit, this
+time targetting the webservices API. As with the previous issue, this allowed
+an attacker to extract the password hash for any account and is fixed with this
+release.
+
+Not security-related:
+- Re-introduced function get_SPX_Ver in the install script, which is still
+  needed when upgrading from old Geeklog releases (reported by Sheila) [Dirk]
+
+
 Apr 4, 2009 (1.5.2sr2)
 -----------
 
