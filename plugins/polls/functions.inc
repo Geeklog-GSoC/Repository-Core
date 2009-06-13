@@ -94,21 +94,6 @@ function plugin_getmenuitems_polls ()
 }
 
 /**
-* Geeklog is checking to see if this plugin supports comments, tell it yes.
-*
-* NOTE: to support comments you must used the same date/time based ID for your
-* widget.  In other words, to make primary keys for your plugin you should call
-* makesid().  Comments are keyed off of that...it is a limitation on how Geeklog
-* does comments.
-*
-*/
-function plugin_commentsupport_polls()
-{
-    // polls will use comments
-    return true;
-}
-
-/**
  * Poll saves a comment
  *
  * @param   string  $title  comment title
@@ -1260,7 +1245,7 @@ function plugin_getiteminfo_polls($pid, $what, $uid = 0, $options = array())
     if ($pid != '*') {
         $sql .= ' LIMIT 1';
     }
-COM_errorLog($sql);
+
     $result = DB_query($sql);
     $numRows = DB_numRows($result);
 

@@ -1,6 +1,6 @@
 Geeklog History/Changes:
 
-May 31, 2009 (1.6.0b2)
+Jun ??, 2009 (1.6.0b3)
 ------------
 
 Geeklog 1.6.0 incorporates the following projects implemented during
@@ -9,6 +9,42 @@ the 2008 Google Summer of Code:
 + Site migration support and easier plugin installation, by Matt West
 + Improved search, by Sami Barakat
 + Comment moderation and editable comments, by Jared Wenerd
+
+Changes since 1.6.0b2:
+- Fixed an error that occured after deleting a trackback [Dirk]
+- Replace autotags in search results (bug #0000887) [Dirk]
+- Don't insist on an email adress when editing a Remote User (bug #0000885)
+  [Dirk]
+- Added a config option to send an X-FRAME-OPTIONS HTTP header to prevent
+  "clickjacking" (requires browser support) [Dirk]
+- Prevent XSS in the install script (reported independently by Nemesis and MaXe)
+  [Dirk]
+- Removed old plugin API function plugin_commentsupport from the Calendar,
+  Polls, and Static Pages plugins.
+
+- Updated Japanese language files and Japanese documentation,
+  provided by the Geeklog.jp group
+
+Polls plugin
+------------
+- Update polls comments when changing a poll's ID so the comments don't become
+  orphaned (part of bug #0000901) [Dirk]
+
+Static Pages plugin
+-------------------
+- Update static pages comments when changing a page's ID so the comments don't
+  become orphaned (part of bug #0000901) [Dirk]
+- When deleting a static page, also delete its comments (bug #0000901) [Dirk]
+
+XMLSitemap plugin
+-----------------
+- Add the Polls plugin to the sitemap by default (part of bug #0000898) [Dirk]
+- When manually adding or removing plugins, automatically add/remove
+  corresponding entries for priority and frequency (part of bug #0000898) [Dirk]
+
+
+May 31, 2009 (1.6.0b2)
+------------
 
 Changes since 1.6.0b1:
 - Various fixes to the new search (work in progress) [Sami]
@@ -171,6 +207,8 @@ May 1, 2009 (1.6.0b1)
   themselves [Dirk]
 - Gave the Groups and User editors a facelift. Requires a new template file,
   admin/lists/inline.thtml [Dirk]
+- Introduced list of "advanced HTML" tags that are allowed when FCKeditor is
+  enabled. Needed for images (bug #0000757) [Blaine]
 - Add new permissions plugin.install and plugin.upload for more fine-grained
   control to the plugin admin panel (bug #0000637) [Dirk]
 - Introduced new plugin API function PLG_itemDeleted [Dirk]
