@@ -522,15 +522,15 @@ function PLG_displayComment($type, $id, $cid, $title, $order, $format, $page, $v
 */
 function PLG_commentPreSave($uid, &$title, &$comment, $sid, $pid, $type, &$postmode)
 {
-	global $_PLUGINS;
+        global $_PLUGINS;
 
     foreach ($_PLUGINS as $pi_name) {
         $function = 'plugin_commentPreSave_' . $pi_name;
         if (function_exists($function)) {
             $someError = $function($uid, $title, $comment, $sid, $pid, $type, $postmode);
             if ($someError) {
-            	// Plugin doesn't want to save the comment
-            	return $someError;
+                // Plugin doesn't want to save the comment
+                return $someError;
             }
         }
     }
@@ -2612,6 +2612,110 @@ function PLG_pluginStateChange($type, $status)
     if (function_exists($function)) {
         $function($type, $status);
     }
+}
+
+/**
+* Check for updates from the repository for installed plugins
+*
+* @return Show Message()
+*/
+function chk_updates_prepo()
+{
+    session_start();
+    // If session is initialized, do not load
+    if ($_SESSION['plugin_repository_admin_panel_updates_chk'] === true) {
+        return;
+    }
+    $_SESSION['plugin_repository_admin_panel_updates_chk'] = true;
+
+    // Declare Variables
+    global $_CONF, $_TABLES;    
+    $ap = array();
+    $update_count = 0;
+    $upgrade_count = 0;
+    $final_array = array();
+ 
+    // For each plugin in the plugins table
+    $result = DB_query("SELECT pi_name, pi_version FROM {$_TABLES['plugins']} WHERE pi_enabled = '1';");
+    
+    // Loop for each installed plugin, until FALSE reached
+    while ( ($result2 = DB_fetchArray($result)) !== FALSE) {
+        // Attempt to retreive the listing from the repository local copy, to get the plugin ID
+        $result3 = DB_query("SELECT plugin_id, repository_name FROM {$_TABLES['plugin_repository_list']} WHERE name = '{$result2['pi_name']}' AND version = '{$result2['pi_version']}';");
+    
+        // Do query
+        $result4 = DB_fetchArray($result3);
+        
+        // Plugin must not exist in the repository anymore.. how sad
+        if ($result4 === FALSE) {
+            continue;
+        }
+        
+        // Load up array with repository_name, and the plugin_id, and version
+        $ap[$result4['repository_name']][$result4['plugin_id']] = $result4['version']; 
+        
+    }
+    
+    // Array full of data, lets loop through array, and for each repository URL, send for a list of updates.
+    foreach ($ap as $repository => $plugin_value) {
+        // Send to repository
+        $data = "REPOSITORY_ARRAY_INSTALLED=".urlencode(serialize($plugin_value));
+        
+        $result = do_post_request($repository. '/cmd/nchkpdate.php', $data);
+        
+        // Did it fail (if so, we don't do anything)
+        if ( ($result === FALSE) or (unserialize($result) === FALSE)) {
+            continue;
+        }
+        
+        // Whatever number we have is an integer detailing how many plugins have updates - update counter
+        $rarray = unserialize($result);
+        
+        if ($rarray === FALSE) {
+            continue;
+        }        
+        $final_array[$repository] = $rarray;
+        $upgrade_count += count($rarray[1]);        
+        $update_count += count($rarray[0]);
+        
+    }
+
+    // Is it bigger than 0?
+    if ( ($update_count > 0) or ($upgrade_count > 0)) {
+        // Header information
+        header("Location: moderation.php?msg=502");
+    }
+    
+}
+
+/**
+* Send post request for updates info
+*
+* @return 
+*/
+function do_post_request($url, $data, $optional_headers = null)
+{
+    $params = array('http' => array(
+        'method' => 'POST',
+        'content' => $data
+        ));
+     
+     // Optional headers
+     if ($optional_headers !== null) {
+        $params['http']['header'] = $optional_headers;
+     }
+     
+     // Create stream, read in contents
+     $ctx = stream_context_create($params);
+     $fp = fopen($url, 'rb', false, $ctx);
+     if (!$fp) {
+        return false;
+     }
+     
+     // Get response
+     $response = @stream_get_contents($fp);
+
+     return $response;
 }
 
 ?>

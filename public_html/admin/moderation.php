@@ -742,6 +742,9 @@ function security_check_reminder()
 
 // MAIN
 
+// We may need to display
+chk_updates_prepo();
+
 $display = '';
 $display .= COM_siteHeader ('menu', $LANG29[34]);
 $display .= COM_showMessageFromParameter();

@@ -207,14 +207,15 @@ function ADMIN_simpleList($fieldfunction, $header_arr, $text_arr,
 * @param    string  $extra          additional values passed to fieldfunction
 * @param    array   $options        array of options - intially just used for the Check-All feature
 * @param    array   $form_arr       optional extra forms at top or bottom
+* @param    boolean $is_repository  If this is a repository enabled call, then ignore fields that the database is not supported
 * @return   string                  HTML output of function
 *
 */
 function ADMIN_list($component, $fieldfunction, $header_arr, $text_arr,
             $query_arr, $defsort_arr, $filter = '', $extra = '',
-            $options = '', $form_arr='')
+            $options = '', $form_arr='', $is_repository = false)
 {
-    global $_CONF, $_TABLES, $LANG_ADMIN, $LANG_ACCESS, $LANG01, $_IMAGE_TYPE, $MESSAGE;
+    global $_CONF, $_TABLES, $LANG_ADMIN, $LANG_ACCESS, $LANG01, $_IMAGE_TYPE, $MESSAGE, $_DB_dbms;
 
     // set all variables to avoid warnings
     $retval = '';
@@ -480,6 +481,30 @@ function ADMIN_list($component, $fieldfunction, $header_arr, $text_arr,
     $r = 1; # r is the counter for the actual displayed rows for correct coloring
     for ($i = 0; $i < $nrows; $i++) { # now go through actual data
         $A = DB_fetchArray($result);
+        
+        // If repository enabled
+        if ($is_repository == true) {
+            // We now must get the database, get the current type, AND the value with the database type, and see if the result is ! 0 which means its supported
+            if ($_DB_dbms == 'mysql') {
+                // Mask Value is 1
+                if ( ($A['db'] & 1) === 0) {
+                    continue;
+                }
+            }
+            else if ($_DB_dbms == 'mssql') {
+                // Mask Value is 2
+                if ( ($A['db'] & 2) === 0) {
+                    continue;
+                }
+            }
+            else if ($_DB_dbms == 'portgre') {
+                // Mask Value is 4
+                if ( ($A['db'] & 4) === 0) {
+                    continue;
+                }
+            }
+        }
+        
         $this_row = false; # as long as no fields are returned, dont print row
         if (is_array($options) AND $options['chkdelete']) {
             $admin_templates->set_var('class', "admin-list-field");
@@ -1089,6 +1114,44 @@ function ADMIN_getListField_plugins($fieldname, $fieldvalue, $A, $icon_arr, $tok
     }
     return $retval;
 }
+
+
+/**
+ * used for the search results from the repository listings in plugins.php
+ *
+ */
+function ADMIN_getListField_repository($fieldname, $fieldvalue, $A, $icon_arr, $token)
+{
+    global $_CONF, $LANG_ADMIN, $LANG32;
+
+    $retval = '';
+    
+    switch($fieldname) {
+        case 'install':
+	    if ($A['install'] == 0) {
+                // Plugin is not ready for auto install
+                // So disabled INSTALL button
+                $retval = '<input type="button" name="install_button" value="'.$LANG32[315].'" disabled="disabled" /> '.$LANG32[317].' <input type="button" name="install_button" value="'.$LANG32[316].'" onclick="javascript:window.location = \'plugins.php?cmd=download&amp;id='.$A['plugin_id'].'\';" />';
+	    }
+	    else
+	    {
+                // Plugin ready for auto install
+                $retval = '<input type="button" name="install_button" value="'.$LANG32[315].'" onclick="javascript:window.location = \'plugins.php?cmd=install&amp;id='.$A['plugin_id'].'\';" /> '.$LANG32[317].' <input type="button" name="install_button" value="'.$LANG32[316].'" onclick="javascript:window.location = \'plugins.php?cmd=download&amp;id='.$A['plugin_id'].'\';" />';
+	    }
+            break;
+            case 'state':
+                $retval = $LANG32[$A['state']];
+                break;
+            case 'short_des':
+                $retval = substr($A['short_des'], 0, 101);
+                break;
+         default:
+            $retval = $fieldvalue;
+            break;
+    }
+    return $retval;
+}
+
 
 /**
  * used for the lists of submissions and draft stories in admin/moderation.php
