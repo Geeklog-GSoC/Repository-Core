@@ -1075,8 +1075,40 @@ $LANG32 = array(
     105 => '(undefined error)',
     106 => 'Missing a temporary folder.',
     107 => 'Failed to write file to disk.',
-    108 => 'File upload stopped by extension.'
+    108 => 'File upload stopped by extension.',
+    
+    //
+    // Repository Updates
+    // 
+    300 => 'Search for a plugin',
+    301 => 'Check for Updates',
+    302 => 'List Repositories',
+    303 => 'Add Repository',
+    304 => 'Update Plugin List',
+    305 => 'Search Plugin',
+    306 => 'Filter Results',
+    307 => 'Plugin Name',
+    308 => 'Version',
+    309 => 'Repository',
+    310 => 'All Repositories',
+    311 => 'Install / Download',
+    312 => 'Downloads',
+    313 => 'State',
+    314 => 'If a plugin is offered for auto-install, simply click the install button next to the name. However, if the developer did not create this plugin for automatic installation, you may have to manually download it using the download button.',
+    315 => 'Install',
+    316 => 'Download',
+    317 => 'or',
+    'stable' => 'Stable',
+    'depreciated' => 'Depreciated',
+    'insecure' => 'Insecure',
+    'beta' => 'Beta',
+    'final' => 'Final',
+    'dev' => 'Dev',
+    318 => 'Description',
+    319 => 'Repository Name'
+    
 );
+
 
 ###############################################################################
 # admin/syndication.php
@@ -1240,7 +1272,14 @@ $MESSAGE = array(
     100 => 'The plugin file you uploaded was not a GZip or Zip compressed archive.',
     101 => 'There are no topics (that you have access to). You need at least one topic to be able to submit stories.',
     400 => 'Not all required fields have been passed validation', // Error codes in the 400 range reserved for CUSTOM membership
-    401 => 'Please enter Fullname'
+    401 => 'Please enter Fullname',
+    // Error codes in the 500 range reserved for Repository Plugin Management
+    500 => 'Repository Update Successful',
+    501 => 'Error: The plugin you selected does not exist - It might be time to reload the repository :)',
+    502 => 'Attention: Update(s) available for your plugin(s)!<br /><a href="plugins.php?mode=chkupdates">Click here to update your plugins</a>',
+    503 => 'Repository URL deleted successfully',
+    504 => 'Error: A valid repository URL is required in format: http://www.sitedomain.com/repository',
+    505 => 'Repository added!'
 );
 
 ###############################################################################
@@ -1860,7 +1899,8 @@ $LANG_confignames['Core'] = array(
     'search_show_limit' => "Show Page Limits?",
     'search_no_data' => "If No Data is Avaliable, Display",
     'search_separator' => "Group Separator",
-    'search_def_keytype' => "Default Search Method"
+    'search_def_keytype' => "Default Search Method",
+    'rmanager_moderated ' => "Plugins and Patches must be approved"
 );
 
 $LANG_configsubgroups['Core'] = array(
