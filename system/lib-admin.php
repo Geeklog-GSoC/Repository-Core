@@ -1128,16 +1128,16 @@ function ADMIN_getListField_repository($fieldname, $fieldvalue, $A, $icon_arr, $
     
     switch($fieldname) {
         case 'install':
-	    if ($A['install'] == 0) {
+            if ($A['install'] == 0) {
                 // Plugin is not ready for auto install
                 // So disabled INSTALL button
                 $retval = '<input type="button" name="install_button" value="'.$LANG32[315].'" disabled="disabled" /> '.$LANG32[317].' <input type="button" name="install_button" value="'.$LANG32[316].'" onclick="javascript:window.location = \'plugins.php?cmd=download&amp;id='.$A['plugin_id'].'\';" />';
-	    }
-	    else
-	    {
+            }
+            else
+            {
                 // Plugin ready for auto install
                 $retval = '<input type="button" name="install_button" value="'.$LANG32[315].'" onclick="javascript:window.location = \'plugins.php?cmd=install&amp;id='.$A['plugin_id'].'\';" /> '.$LANG32[317].' <input type="button" name="install_button" value="'.$LANG32[316].'" onclick="javascript:window.location = \'plugins.php?cmd=download&amp;id='.$A['plugin_id'].'\';" />';
-	    }
+            }
             break;
             case 'state':
                 $retval = $LANG32[$A['state']];
@@ -1152,6 +1152,38 @@ function ADMIN_getListField_repository($fieldname, $fieldvalue, $A, $icon_arr, $
     return $retval;
 }
 
+/**
+ * used for the list of repositories in admin/plugins.php
+ *
+ */
+function ADMIN_getListField_repositorylisting($fieldname, $fieldvalue, $A, $icon_arr, $token)
+{
+    global $_CONF, $LANG_ADMIN, $LANG32;
+
+    $retval = '';
+    switch($fieldname) {
+        case 'enabled':
+            if ($A['enabled'] == 1) {
+                $switch = ' checked="checked"';
+                $enabled = true;
+            }
+            else {
+                $switch = '';
+                $enabled = false;
+            }
+            
+            $retval = '<input type="checkbox" name="prep'.$A['repository_url'].'" onclick="window.location = \'plugins.php?cmd=toggle_repo&rname='.$A['repository_url'].'&enabled='.$enabled.'\'" value="1"'
+                      . $switch . XHTML . '>&nbsp;<input type="button" name="delete_pl" onclick="window.location = \'plugins.php?cmd=del_rep&rname='.$A['repository_url'].'\';" value="'.$LANG_ADMIN['delete'].'" /> ';
+                      
+            $retval .= '<input type="hidden" name="' . CSRF_TOKEN . '" '
+                      . 'value="' . $token . '"' . XHTML . '>';
+            break;
+        default:
+            $retval = $fieldvalue;
+            break;
+    }
+    return $retval;
+}
 
 /**
  * used for the lists of submissions and draft stories in admin/moderation.php

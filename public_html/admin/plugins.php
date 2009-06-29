@@ -542,7 +542,7 @@ function listplugins($token)
 }
 
 /**
-* Show plugin results
+* Show plugin results from search
 *
 * @param    string  $message    (optional) message to display
 * @return   string              HTML for the plugin screen
@@ -563,6 +563,34 @@ function plugin_showresults($message = '')
 
     $token = SEC_createToken();
     $retval .= listsearchedplugins($token);
+
+    $retval .= COM_siteFooter();
+
+    return $retval;
+}
+
+/**
+* Show repository listing
+*
+* @param    string  $message    (optional) message to display
+* @return   string              HTML for the plugin screen
+*
+*/
+function plugin_showrepos($message = '')
+{
+    global $LANG32;
+
+    $retval = '';
+
+    $retval .= COM_siteHeader('menu', $LANG32[5]);
+    if (!empty($message)) {
+        $retval .= COM_showMessageText($message);
+    } else {
+        $retval .= COM_showMessageFromParameter();
+    }
+
+    $token = SEC_createToken();
+    $retval .= listrepositories($token);
 
     $retval .= COM_siteFooter();
 
@@ -641,7 +669,7 @@ function listsearchedplugins($token)
     $form_arr = array('bottom' => '<input type="hidden" name="pluginenabler" value="true"' . XHTML . '>');
 
     $retval .= ADMIN_list('plugin_repository_list', 'ADMIN_getListField_repository', $header_arr,
-                $text_arr, $query_arr, $defsort_arr, '', $token, '', $form_arr, true, true);
+                $text_arr, $query_arr, $defsort_arr, '', $token, '', $form_arr, true);
     $retval .= COM_endBlock(COM_getBlockTemplate('_admin_block', 'footer'));
 
     return $retval;
@@ -659,18 +687,14 @@ function listrepositories($token)
     global $_CONF, $_TABLES, $LANG32, $LANG_ADMIN, $_IMAGE_TYPE;
 
     require_once $_CONF['path_system'] . 'lib-admin.php';
-# TIM UPDATE LANG FILES HERE
+
     $retval = '';
     $header_arr = array(      # display 'text' and use table field 'field'
-        array('text' => $LANG32[16], 'field' => 'name', 'sort' => true),
-        array('text' => $LANG32[17], 'field' => 'version', 'sort' => true),
-        array('text' => $LANG32[311], 'field' => 'install', 'sort' => false),
-        array('text' => $LANG32[318], 'field' => 'short_des', 'sort' => false),
-        array('text' => $LANG32[313], 'field' => 'state', 'sort' => true),
-        array('text' => $LANG32[312], 'field' => 'downloads', 'sort' => true)
+        array('text' => $LANG32[319], 'field' => 'repository_url', 'sort' => true),
+        array('text' => $LANG_ADMIN['enabled'] . ' / ' . $LANG_ADMIN['delete'], 'field' => 'enabled', 'sort' => false)
     );
 
-    $defsort_arr = array('field' => 'name', 'direction' => 'asc');
+    $defsort_arr = array('field' => 'repository_url', 'direction' => 'asc');
 
     $menu_arr = array (
                     array('url' => $_CONF['site_admin_url'],
@@ -701,16 +725,11 @@ function listrepositories($token)
         'instructions' => $LANG32[314],
         'form_url'     => $_CONF['site_admin_url'] . '/plugins.php'
     );
-    
-    // Get POST values
-    $name = (isset($_POST['plugin_name'])) ? COM_applyFilter($_POST['plugin_name']) : "";
-    $version = (isset($_POST['plugin_version'])) ? COM_applyFilter($_POST['plugin_version']) : "";
-    $repository = (isset($_POST['plugin_repo'])) ? COM_applyFilter($_POST['plugin_repo']) : "";
-    
+        
     $query_arr = array(
-        'table' => 'plugin_repository_list',
-        'sql' => "SELECT * FROM {$_TABLES['plugin_repository_list']} WHERE name LIKE '%{$name}%' AND version LIKE '%{$version}%' AND repository_name LIKE '%{$repository}%'",
-        'query_fields' => array('name'),
+        'table' => 'plugin_repository',
+        'sql' => "SELECT repository_url, enabled FROM {$_TABLES['plugin_repository']}",
+        'query_fields' => array('repository_url'),
         'default_filter' => ''
     );
 
@@ -718,8 +737,9 @@ function listrepositories($token)
     // should be disabled in order to disable the last one.
     $form_arr = array('bottom' => '<input type="hidden" name="pluginenabler" value="true"' . XHTML . '>');
 
-    $retval .= ADMIN_list('plugin_repository_list', 'ADMIN_getListField_repository', $header_arr,
-                $text_arr, $query_arr, $defsort_arr, '', $token, '', $form_arr, true, true);
+    $retval .= ADMIN_list('plugin_repository', 'ADMIN_getListField_repositorylisting', $header_arr,
+                $text_arr, $query_arr, $defsort_arr, '', $token, '', $form_arr, false);
+                
     $retval .= COM_endBlock(COM_getBlockTemplate('_admin_block', 'footer'));
 
     return $retval;
@@ -820,10 +840,10 @@ function plugin_show_uploadform($token)
 /** 
 * Set uploaded plugin for install, and download to tmp directory, for unpacking purposes
 * @param    int    $id    Plugin ID from the repository
-* 
+* @param    boolean $value  TRUE if ok repository, FALSE if unknown repository
 * @return    RESULT from plugin_upload():HTML      
 */
-function plugin_install_repo($id)
+function plugin_install_repo($id, &$value)
 {
     global $_CONF, $_TABLES;
     
@@ -954,6 +974,51 @@ function download_file($file, $local_file, &$curl_error = null)
     return true; 
 
 }
+
+/** 
+* This function deletes the selected repository from the database
+* @param    string    $rname    Repository URL
+* 
+* @return    false   
+*/
+function plugin_delete_repositorylisting($rname)
+{
+    global $_CONF, $_TABLES;
+    
+    // Get the plugin file name, download it, and move it to the /data folder for processing.
+    $rname = COM_applyFilter($rname); 
+
+    $result = DB_query("DELETE FROM {$_TABLES['plugin_repository']} WHERE repository_url = '{$rname}';");
+    
+    header("Location: plugins.php?msg=503");
+}
+
+/** 
+* This function enables or disables the repository url
+* @param    string    $rname    Repository URL
+* @param    boolean   $enabled  TRUE to set to enabled, FALSE to set to disabled
+* 
+* @return    false   
+*/
+function plugin_toggle_repositorylisting($rname, $enabled)
+{
+    global $_CONF, $_TABLES;
+    
+    // Get the plugin file name, download it, and move it to the /data folder for processing.
+    $rname = COM_applyFilter($rname); 
+   
+    if ($enabled == TRUE) {
+        $enabled = 0;
+    }
+    else {
+        $enabled = 1;
+    }
+
+    $result = DB_query("UPDATE {$_TABLES['plugin_repository']} SET enabled = '{$enabled}' WHERE repository_url = '{$rname}';");
+    
+    header("Location: plugins.php?mode=lstrepo");
+}
+
 
 /**
 * Check for Updates
@@ -1552,7 +1617,7 @@ function updaterepositorylist()
     
     // For each repository listing
     $query = "SELECT * FROM {$_TABLES['plugin_repository']} WHERE enabled = 1;";
-    DB_query($query);
+    $result = DB_query($query);
     
     // Truncate Table
     DB_query("TRUNCATE {$_TABLES['plugin_repository_list']};");
@@ -1593,7 +1658,7 @@ function updaterepositorylist()
                   }
                   else {  
                       $plugin = false; 
-                      
+
                       // Insert into the repository listing database the values
                       $query = <<<OFF
 INSERT INTO {$_TABLES['plugin_repository_list']} (plugin_id, name, repository_name, version, db, dependencies, soft_dep, short_des, long_des, credits, vett, downloads, install, state, ext) VALUES('{$array_of_values['id']}','{$array_of_values['name']}','{$array_of_values['version']}','{$array_of_values['db']}','{$array_of_values['dependencies']}','{$array_of_values['soft_dep']}','{$array_of_values['short_des']}','{$array_of_values['long_des']}','{$array_of_values['credits']}','{$array_of_values['vett']}','{$array_of_values['downloads']}','{$array_of_values['install']}','{$array_of_values['state']}','{$array_of_values['ext']}');
@@ -1640,6 +1705,63 @@ OFF;
         $reader->close();
 
     }
+}
+
+
+/**
+* Show the add repository template
+*
+*/
+function show_add_repo()
+{
+    // Declare Variables
+    global $_CONF, $LANG_ADMIN, $LANG32;
+    
+    // Templates
+    $plg_templates = new Template($_CONF['path_layout'] . 'admin/plugins');
+    $plg_templates->set_file('add_repo', 'add_repo.thtml');
+    $plg_templates->set_var('xhtml', XHTML);
+    $plg_templates->set_var('site_admin_url', $_CONF['site_admin_url']);
+    $plg_templates->set_var('start_block_editor', COM_startBlock ($LANG32[13],
+            '', COM_getBlockTemplate ('_admin_block', 'header')));
+    $plg_templates->set_var('lang_save', $LANG_ADMIN['save']);
+    $plg_templates->set_var('lang_cancel', $LANG_ADMIN['cancel']);
+    $plg_templates->set_var('pi_icon', PLG_getIcon($pi_name));
+    $plg_templates->set_var('lang_repourl', $LANG32[319]);
+    $plg_templates->set_var('gltoken', SEC_createToken());
+    $plg_templates->set_var('gltoken_name', CSRF_TOKEN);
+    $plg_templates->set_var('end_block',
+            COM_endBlock (COM_getBlockTemplate ('_admin_block', 'footer')));
+
+    $retval .= $plg_templates->finish($plg_templates->parse('output', 'add_repo'));
+
+    return $retval;
+
+    
+}
+
+/**
+* Add repository listing
+*
+*/
+function add_repository()
+{
+    // Globals 
+    global $_TABLES;
+    
+    // Get POST value
+    $repository_url = (isset($_POST['repository_url'])) ? COM_applyFilter($_POST['repository_url']) : false;
+ 
+    // Cannot be false, must be valid page
+    if ( ($repository_url === FALSE) or (ereg('^http://[a-zA-Z0-9\-\./]+/repository', $repository_url) === FALSE) ) {
+        header("Location: plugins.php?msg=504");
+        return;
+    }
+
+    // Add to database
+    DB_query("INSERT INTO {$_TABLES['plugin_repository']}(repository_url, enabled) VALUES('{$repository_url}',1);");
+    
+    header("Location: plugins.php?msg=505");
 }
 
 // MAIN
@@ -1694,6 +1816,11 @@ if (($mode == $LANG_ADMIN['delete']) && !empty($LANG_ADMIN['delete'])) {
     $display .= COM_siteHeader('menu', $LANG32[13]);
     $display .= do_update($pi_name);
     $display .= COM_siteFooter();
+    
+} elseif ( ( isset($_POST['add_repo'])) && SEC_checkToken()) { // update
+    $display .= COM_siteHeader('menu', $LANG32[13]);
+    $display .= add_repository();
+    $display .= COM_siteFooter();
 
 } elseif ($mode == 'edit') {
     $display .= COM_siteHeader('menu', $LANG32[13]);
@@ -1710,6 +1837,16 @@ if (($mode == $LANG_ADMIN['delete']) && !empty($LANG_ADMIN['delete'])) {
 } elseif ($mode == 'splugin') {
     $display .= COM_siteHeader('menu', $LANG32[304]);
     $display .= pluginsearch();
+    $display .= COM_siteFooter();
+
+} elseif ($mode == 'lstrepo') {
+    $display .= COM_siteHeader('menu', $LANG32[304]);
+    $display .= plugin_showrepos();
+    $display .= COM_siteFooter();
+    
+} elseif ($mode == 'addrepo') {
+    $display .= COM_siteHeader('menu', $LANG32[304]);
+    $display .= show_add_repo();
     $display .= COM_siteFooter();
 
 }  elseif ((($mode == $LANG_ADMIN['save']) && !empty($LANG_ADMIN['save'])) && SEC_checkToken()) {
@@ -1747,11 +1884,18 @@ if (($mode == $LANG_ADMIN['delete']) && !empty($LANG_ADMIN['delete'])) {
 } elseif (isset($_POST['search'])) {
     $display .= plugin_showresults();
     
-} elseif ( (isset($_GET['cmd'])) and ($_GET['cmd'] == 'install')and SEC_hasRights('plugin.install,plugin.upload')) {
-    $display .= plugin_install_repo((isset($_GET['id'])) ? $_GET['id'] : null);
+} elseif ( (isset($_GET['cmd'])) and ($_GET['cmd'] == 'install') and SEC_hasRights('plugin.install,plugin.upload')) {
+    
+    $display .= plugin_install_repo((isset($_GET['id'])) ? $_GET['id'] : null, $bool);
     
 } elseif ( (isset($_GET['cmd'])) and ($_GET['cmd'] == 'download') ) {
         plugin_download_repo((isset($_GET['id'])) ? $_GET['id'] : null);
+    
+} elseif ( (isset($_GET['cmd'])) and ($_GET['cmd'] == 'del_rep')and SEC_hasRights('plugin.install,plugin.upload') ) {
+        plugin_delete_repositorylisting((isset($_GET['rname'])) ? $_GET['rname'] : "");
+
+} elseif ( (isset($_GET['cmd'])) and ($_GET['cmd'] == 'toggle_repo')and SEC_hasRights('plugin.install,plugin.upload') ) {
+        plugin_toggle_repositorylisting((isset($_GET['rname'])) ? $_GET['rname'] : "", (isset($_GET['enabled'])) ? $_GET['enabled'] : false);
     
 } else { // 'cancel' or no mode at all
     $display .= plugin_main();

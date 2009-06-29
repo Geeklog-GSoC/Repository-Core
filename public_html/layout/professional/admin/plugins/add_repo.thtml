@@ -1,0 +1,20 @@
+                            {start_block_editor}
+                            <form action="{site_admin_url}/plugins.php" method="post">
+                                <table cellspacing="0" cellpadding="3">
+                                    <tr>
+                                        <td><img src="{pi_icon}" alt=""{xhtml}></td>
+                                        <td>
+                                            <input type="submit" value="{lang_save}" name="add_repo"{xhtml}>
+                                            <input type="button" value="{lang_cancel}" name="cancel" onclick="window.location = 'plugins.php';" {xhtml}>
+
+                                            <input type="hidden" name="{gltoken_name}" value="{gltoken}"{xhtml}>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="alignright"><b>{lang_repourl}:</b></td>
+                                        <td><input type="text" value="" name="repository_url"{xhtml}></td>
+                                    </tr>
+                                </table>
+                            </form>
+                            {end_block}
+
