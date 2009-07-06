@@ -1085,46 +1085,8 @@ $LANG32 = array(
     302 => 'List Repositories',
     303 => 'Add Repository',
     304 => 'Update Plugin List',
-    305 => 'Search Plugin',
-    306 => 'Filter Results',
-    307 => 'Plugin Name',
-    308 => 'Version',
-    309 => 'Repository',
-    310 => 'All Repositories',
-    311 => 'Install / Download',
-    312 => 'Downloads',
-    313 => 'State',
-    314 => 'If a plugin is offered for auto-install, simply click the install button next to the name. However, if the developer did not create this plugin for automatic installation, you may have to manually download it using the download button.',
-    315 => 'Install',
-    316 => 'Download',
-    317 => 'or',
-    'stable' => 'Stable',
-    'depreciated' => 'Depreciated',
-    'insecure' => 'Insecure',
-    'beta' => 'Beta',
-    'final' => 'Final',
-    'dev' => 'Dev',
-    318 => 'Repository URL',
-    319 => 'Repository Name',
-    320 => 'Name field supports the + operator as AND to separate search terms, | as OR. Note that AND is evaluated before OR. Eg Geeklog+Plugin|Scape is evaluated as Geeklog and (Plugin OR Scape) ', // , and the ^ operator as OR for search terms.<br />&nbsp;&nbsp;However, note only one type of operator is allowed in a query - either + or ^ but not both'
-    321 => 'Security Warning',
-    322 => 'Caution: The plugin you are attempting to retrieve may be malicious!',
-    323 => 'This plugin is stored in an untrusted repository - ONLY install if you trust the author(s) of the plugin AND the repository. This may be an attempt to gain control of your Geeklog installation.',
-    324 => 'Get Me Out!',
-    325 => 'Proceed',
-    326 => 'This plugin is from a certified safe repository! Install with pride!',
-    327 => 'Caution: This plugin is from a non-certified safe repository - it may contain malicious code.<br />Only install if you trust the author(s) of this plugin.',
-    328 => 'The following updates are available to be installed. Clicking on the name will give a description of the plugin, as well as any other information necessary.',
-    329 => 'Updates Available',
-    330 => 'Applies to Version',
-    331 => 'Severity',
-    332 => 'Install Updates',
-    333 => 'There are no updates available at this moment - try again later!',
-    334 => 'Upgrade(s) are available for the following plugins!',
-    335 => '(Must install manually)'
-    
+    305 => ''
 );
-
 
 ###############################################################################
 # admin/syndication.php
@@ -1288,18 +1250,7 @@ $MESSAGE = array(
     100 => 'The plugin file you uploaded was not a GZip or Zip compressed archive.',
     101 => 'There are no topics (that you have access to). You need at least one topic to be able to submit stories.',
     400 => 'Not all required fields have been passed validation', // Error codes in the 400 range reserved for CUSTOM membership
-    401 => 'Please enter Fullname',
-    // Error codes in the 500 range reserved for Repository Plugin Management
-    500 => 'Repository Update Successful',
-    501 => 'Error: The plugin you selected does not exist - It might be time to reload the repository :)',
-    502 => 'Attention: There are %d update(s) and %d upgrade(s) available for the plugins installed!<br />Please <a href="plugins.php?mode=chkupdates">update them right away</a>, as there may be important security updates available.',
-    503 => 'Repository URL deleted successfully',
-    504 => 'Error: A valid repository URL is required in format: http://www.sitedomain.com/repository/main',
-    505 => 'Repository added!',
-    506 => 'Error: The repository you entered is blacklisted, for containing malicious software harmful to your computer. ',
-    507 => 'Error: Failure to contact repository check database. Please try again later.',
-    508 => "Error: The repository you entered does not exist (HTTP STATUS %s). Did you make a typing error? Host: %s",
-    509 => 'Error: Failed to get patch %s.. Please try again without this patch'
+    401 => 'Please enter Fullname'
 );
 
 ###############################################################################

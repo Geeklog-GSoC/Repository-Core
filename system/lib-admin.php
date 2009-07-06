@@ -1122,21 +1122,30 @@ function ADMIN_getListField_plugins($fieldname, $fieldvalue, $A, $icon_arr, $tok
  */
 function ADMIN_getListField_repository($fieldname, $fieldvalue, $A, $icon_arr, $token)
 {
-    global $_CONF, $LANG_ADMIN, $LANG32;
+    global $_CONF, $LANG_ADMIN, $LANG32, $REPOSITORY;
 
     $retval = '';
-    
     switch($fieldname) {
         case 'install':
+            // Check to see if the repository is ok
+            switch ($REPOSITORY[$A['repository_name']]) {
+                case '3':
+                    $titular = "safe";
+                    break;
+                default:
+                    $titular = "unsafe";
+                    break;
+            }
+            
             if ($A['install'] == 0) {
                 // Plugin is not ready for auto install
                 // So disabled INSTALL button
-                $retval = '<input type="button" name="install_button" value="'.$LANG32[315].'" disabled="disabled" /> '.$LANG32[317].' <input type="button" name="install_button" value="'.$LANG32[316].'" onclick="javascript:window.location = \'plugins.php?cmd=download&amp;id='.$A['plugin_id'].'\';" />';
+                $retval = '<input type="button" name="install_button" value="'.$LANG32[315].'" disabled="disabled" /> '.$LANG32[317].' <input type="button" name="install_button" value="'.$LANG32[316].'" onclick="javascript:is_downloadinstall_plugin(\'download_'.$titular.'\', '.$A['plugin_id'] .', event);" />';
             }
             else
             {
                 // Plugin ready for auto install
-                $retval = '<input type="button" name="install_button" value="'.$LANG32[315].'" onclick="javascript:window.location = \'plugins.php?cmd=install&amp;id='.$A['plugin_id'].'\';" /> '.$LANG32[317].' <input type="button" name="install_button" value="'.$LANG32[316].'" onclick="javascript:window.location = \'plugins.php?cmd=download&amp;id='.$A['plugin_id'].'\';" />';
+                $retval = '<input type="button" name="install_button" value="'.$LANG32[315].'" onclick="javascript:is_downloadinstall_plugin(\'install_'.$titular.'\', '.$A['plugin_id'] .', event);" /> '.$LANG32[317].' <input type="button" name="install_button" value="'.$LANG32[316].'" onclick="javascript:is_downloadinstall_plugin(\'download_'.$titular.'\', '.$A['plugin_id'] .', event);" />';
             }
             break;
             case 'state':
@@ -1145,6 +1154,37 @@ function ADMIN_getListField_repository($fieldname, $fieldvalue, $A, $icon_arr, $
             case 'short_des':
                 $retval = substr($A['short_des'], 0, 101);
                 break;
+             case 'repository_name':
+           // Check to see if the repository is ok
+                 switch ($REPOSITORY[$A['repository_name']]) {
+                     case '3':
+                         $titular = "";
+                         break;
+                     default:
+                         $titular = "<span style='color:red'>&nbsp;(May be unsafe)</span>";
+                         break;
+                 }
+                  
+                 return $A['repository_name']. $titular;
+
+                break;
+             case 'name':
+                 // Check to see if the repository is ok
+                 switch ($REPOSITORY[$A['repository_name']]) {
+                     case '3':
+                         $titular = $LANG32[326];
+                         break;
+                     default:
+                         $titular = '<span style="color:red">'.$LANG32[327].'</span>';
+                         break;
+                 }
+                 
+                 $dep = ($A['dependencies'] == "") ? "(none)" : $A['dependencies'];
+                 $sdep = ($A['soft_dep'] == "") ? "(none)" : $A['soft_dep'];
+                 $des = ($A['short_des'] == "") ? "(no description)" : $A['short_des'];
+                 $credits = ($A['credits'] == "") ? "(no credits)" : $A['credits'];
+                 $retval = "<a href='javascript:void();' onclick='javascript:display_datalink(\"DISPLAY_DATA{$A['plugin_id']}\",event);'>{$A['name']}</a> <div class='plugin_data' style='display:none' id='DISPLAY_DATA{$A['plugin_id']}'><img style='float:right' onclick='javascriprt:hide_datalink(\"DISPLAY_DATA{$A['plugin_id']}\");' alt='Close' src='{$_CONF['site_url']}/images/close.gif' /><b>{$A['name']} {$A['version']}</b><br /><br />{$titular}<br /><br /><b>About:</b><br />{$des}<br /><br /><b>Following plugin dependencies are required:</b><br />{$dep}<br /><br /><b>Following software dependencies are required:</b><br />{$sdep}<br /><br /><b>Credits:</b><br />{$credits}</div>";
+                 break;
          default:
             $retval = $fieldvalue;
             break;
