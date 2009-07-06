@@ -4522,6 +4522,51 @@ function COM_showMessage($msg, $plugin = '')
 }
 
 /**
+* Displays a message on the webpage according to the tmsg standard ($msg contains array key for $MESSAGE array, remaining GET parameters contain sprintf 
+* data
+* 
+* @param    int     $msg        ID of message to show
+* @return   string              HTML block with message
+*
+*/
+function ShowTMessage($msg)
+{
+    global $MESSAGE;
+
+    $retval = '';
+
+    if ($msg > 0) {
+        $message = $MESSAGE[$msg];
+         
+        // Only if $_GET['enable_spf'] is enabled
+        if ( (isset($_GET['enable_spf'])) and ($_GET['enable_spf'] == 1)) {
+          
+            $eval = '$holder = sprintf($message';
+            foreach ($_GET as $name => $key) {
+                // If its msg as the name, we pass as thats ok. Otherwise, lets start racking up!
+                if ( ($name == "tmsg") or ($name == "enable_spf")) {
+                    continue;
+                }
+              
+                $eval .= ",COM_applyFilter(\$_GET['$name'])";
+            }
+            $eval .= ');';
+            
+            // Evaluate code
+            // Use of EVAL here is totally safe as we built the string
+            eval($eval);
+            $message = $holder;
+        }
+
+        if (!empty($message)) {
+            $retval .= COM_showMessageText($message);
+        }
+    }
+
+    return $retval;
+}
+
+/**
 * Displays a message, as defined by URL parameters
 *
 * Helper function to display a message, if URL parameters 'msg' and 'plugin'
@@ -4545,6 +4590,12 @@ function COM_showMessageFromParameter()
                 $plugin = COM_applyFilter($_GET['plugin']);
             }
             $retval .= COM_showMessage($msg, $plugin);
+        }
+    }
+    else if (isset($_GET['tmsg'])) {
+        $msg = COM_applyFilter($_GET['tmsg'], true);
+        if ($msg > 0) {
+            $retval .= ShowTMessage($msg);
         }
     }
 

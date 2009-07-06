@@ -71,3 +71,94 @@
             elementToggle(id);
         }
     }
+    
+
+// Function to get the XY position of the screen
+IE_SUCKS = navigator.appName.indexOf("Microsoft");
+
+function XYpos(e) 
+{
+    if (IE_SUCKS == true) { // Hahaha, look at this, IE_SUCKS is TRUE :P
+        xPos = event.screenX;
+        yPos = event.screenY;
+                
+    }
+    else {
+        xPos = e.screenX;
+        yPos = e.screenY;
+                
+    }
+        
+    // Return as array, X,Y
+    return Array(xPos, yPos);
+}
+
+// Sets left and top attributes
+function set_topleftpos(ttop, lleft, id)
+{
+    document.getElementById(id).style.top = (ttop -170) + 'px';
+    document.getElementById(id).style.left = lleft + 'px';
+}
+
+// Displays data link
+function display_datalink(id,e)
+{
+    var arr = XYpos(e);
+    set_topleftpos(arr[1], arr[0], id);
+    document.getElementById(id).style.display = "";
+}
+
+// Hide data link
+function hide_datalink(id)
+{
+    document.getElementById(id).style.display = "none";
+}
+
+// Open warning box, warning of potential malicious content
+function warn_malicious_plugin(id,e, mode)
+{
+    if (mode == "install_unsafe") {
+        var cmd = "install";
+    }
+    else {
+        var cmd = "download";
+    }
+    var data = '<b style="color:red">'+MALICIOUS_PLUGIN_WARN['warning']+'!!</b><br /><br />'+MALICIOUS_PLUGIN_WARN['msg']+'<br /><br />'+MALICIOUS_PLUGIN_WARN['msg2']+'<br /><br /><input type="button" name="get_me_out" value="'+MALICIOUS_PLUGIN_WARN['cancel']+'" onclick="javascript:hide_maliciouswarning();" /><input type="button" name="install" value="'+MALICIOUS_PLUGIN_WARN['install']+'" onclick="javascript:hide_maliciouswarning();window.location = \'plugins.php?cmd='+cmd+'&id='+id+'\'" />';
+    document.getElementById("MALICIOUS_PLUGIN_WARN").innerHTML = data;    
+    display_datalink("MALICIOUS_PLUGIN_WARN",e);
+}
+
+// Bring up install/download plugin warning enabled box
+// id is plugin id, e = event
+function is_downloadinstall_plugin(mode, id, e)
+{ 
+    // Switch through the modes --
+    // install_safe = auto redirect
+    // install_unsafe = bring up prompt
+    // same for download, download_safe and download_unsafe
+    switch(mode)
+    {
+        case "install_safe":
+        case "download_safe":
+            if (mode == "install_safe") {
+                var cmd = "install";
+            }
+            else {
+                var cmd = "download";
+            }
+            
+            window.location = "plugins.php?cmd="+cmd+"&id="+id;
+            break;
+        case "download_unsafe":
+        case "install_unsafe":
+            // Open message box
+            warn_malicious_plugin(id,e, mode);
+            break;
+    }
+}
+
+// Hides warning
+function hide_maliciouswarning()
+{
+    hide_datalink("MALICIOUS_PLUGIN_WARN");
+}

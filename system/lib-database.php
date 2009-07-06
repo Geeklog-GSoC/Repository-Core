@@ -114,6 +114,10 @@ $_TABLES['spamx']               = $_DB_table_prefix . 'spamx';
 // Static Pages plugin
 $_TABLES['staticpage']          = $_DB_table_prefix . 'staticpage';
 
+// Plugin Repository 
+$_TABLES['repository_listing']                    = $_DB_table_prefix . 'repository_listing';
+$_TABLES['repository_access_list']                = $_DB_table_prefix . 'repository_access_list';
+$_TABLES['repository_patches']                    = $_DB_table_prefix . 'repository_patches';
 
 // These tables aren't used by Geeklog any more, but the table names are still
 // needed when upgrading from old versions

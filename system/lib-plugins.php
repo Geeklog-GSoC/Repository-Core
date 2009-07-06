@@ -2623,20 +2623,62 @@ function chk_updates_prepo()
 {
     session_start();
     // If session is initialized, do not load
-    if ($_SESSION['plugin_repository_admin_panel_updates_chk'] === true) {
+   /* if ($_SESSION['plugin_repository_admin_panel_updates_chk'] === true) {
         return;
     }
     $_SESSION['plugin_repository_admin_panel_updates_chk'] = true;
-
+*/
+#TMP TESTING
+if($_GET['enable_spf']) { return; }
     // Declare Variables
     global $_CONF, $_TABLES;    
+    
+    // Do a repository listing update
+    $list_repo = array();
+    
+    $result = DB_query("SELECT repository_url FROM {$_TABLES['plugin_repository']};");
+    
+    // Loop through results, storing them in an array to be sent off
+    while ( ($result2 = DB_fetchArray($result)) !== FALSE) {
+        $list_repo[] = $result2['repository_url'];
+    }
+    
+    // Send off post data
+    $data = "REPOSITORIES=".rawurlencode(serialize($list_repo));    
+    $result = do_post_request('check_repository.php?cmd=update', $data);    
+    $return_array = unserialize($result);
+    // Did it return false, its ok
+    if ( ($result === FALSE) or ($return_array === FALSE) or (count($return_array) < 1)) {
+        
+    }
+    else {
+        // We should get back an array like so:
+        // ARRAY [repository_name] => state
+        foreach ($return_array as $key => $value) {
+            // Update DB
+            $state = (int)$value;
+            
+            // Validate state
+            if ($state === 1) {
+                // Banned URL, must delete
+                DB_query("DELETE FROM {$_TABLES['plugin_repository']} WHERE repository_name = '{$url}';");
+            }
+            else {
+                $state = ($state === 3) ? 3 : 2;
+                $url = COM_applyFilter($key);
+                DB_query("UPDATE {$_TABLES['plugin_repository']} SET state = '{$state}' WHERE repository_name = '{$url}';");
+            }
+        }
+    }
+    
+    // And now check for updates
     $ap = array();
     $update_count = 0;
     $upgrade_count = 0;
     $final_array = array();
  
     // For each plugin in the plugins table
-    $result = DB_query("SELECT pi_name, pi_version FROM {$_TABLES['plugins']} WHERE pi_enabled = '1';");
+    $result = DB_query("SELECT pi_name, pi_version, pi_update_count FROM {$_TABLES['plugins']} WHERE pi_enabled = '1';");
     
     // Loop for each installed plugin, until FALSE reached
     while ( ($result2 = DB_fetchArray($result)) !== FALSE) {
@@ -2652,17 +2694,20 @@ function chk_updates_prepo()
         }
         
         // Load up array with repository_name, and the plugin_id, and version
-        $ap[$result4['repository_name']][$result4['plugin_id']] = $result4['version']; 
+        $ap[$result4['repository_name']][$result4['plugin_id']] = array($result4['version'], $result2['pi_update_count']); 
         
     }
-    
+
+### DEBUG HERE ####
+   $ap['http://geeklog.tim/geeklog-1.6.0b1/public_html/repository'][5] = array('1.0.0.1', 0);
+
     // Array full of data, lets loop through array, and for each repository URL, send for a list of updates.
     foreach ($ap as $repository => $plugin_value) {
         // Send to repository
-        $data = "REPOSITORY_ARRAY_INSTALLED=".urlencode(serialize($plugin_value));
+        $data = "REPOSITORY_ARRAY_INSTALLED=".rawurlencode(serialize($plugin_value));
         
-        $result = do_post_request($repository. '/cmd/nchkpdate.php', $data);
-        
+        $result = do_post_request($repository. '/cmd/nchkpdate.php?cmd=1', $data);
+
         // Did it fail (if so, we don't do anything)
         if ( ($result === FALSE) or (unserialize($result) === FALSE)) {
             continue;
@@ -2670,20 +2715,21 @@ function chk_updates_prepo()
         
         // Whatever number we have is an integer detailing how many plugins have updates - update counter
         $rarray = unserialize($result);
-        
+
         if ($rarray === FALSE) {
             continue;
         }        
         $final_array[$repository] = $rarray;
         $upgrade_count += count($rarray[1]);        
         $update_count += count($rarray[0]);
-        
+
     }
 
     // Is it bigger than 0?
     if ( ($update_count > 0) or ($upgrade_count > 0)) {
         // Header information
-        header("Location: moderation.php?msg=502");
+        header("Location: moderation.php?tmsg=502&enable_spf=1&count={$update_count}&ccount={$update_count}");
+        return;
     }
     
 }

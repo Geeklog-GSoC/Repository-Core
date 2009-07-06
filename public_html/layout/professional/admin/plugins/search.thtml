@@ -10,7 +10,7 @@
                                     </tr>
                                     <tr>
                                         <td class="alignright"><b>{lang_306}</b></td>
-                                        <td></td>
+                                        <td> - {lang_320}</td>
                                     </tr>				    
                                     <tr>
                                         <td class="alignright"></td>
