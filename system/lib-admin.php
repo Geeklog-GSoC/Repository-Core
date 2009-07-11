@@ -1151,6 +1151,14 @@ function ADMIN_getListField_repository($fieldname, $fieldvalue, $A, $icon_arr, $
             case 'state':
                 $retval = $LANG32[$A['state']];
                 break;
+            case 'downloads':
+                if ($A['downloads'] < 1) {
+                    $retval = 0;
+                }
+                else {
+                    $retval = $A['downloads'];
+                }
+                break;
             case 'short_des':
                 $retval = substr($A['short_des'], 0, 101);
                 break;
@@ -1161,7 +1169,7 @@ function ADMIN_getListField_repository($fieldname, $fieldvalue, $A, $icon_arr, $
                          $titular = "";
                          break;
                      default:
-                         $titular = "<span style='color:red'>&nbsp;(May be unsafe)</span>";
+                         $titular = "<span style='color:red'>&nbsp;{$LANG32[344]}</span>";
                          break;
                  }
                   
@@ -1179,11 +1187,11 @@ function ADMIN_getListField_repository($fieldname, $fieldvalue, $A, $icon_arr, $
                          break;
                  }
                  
-                 $dep = ($A['dependencies'] == "") ? "(none)" : $A['dependencies'];
-                 $sdep = ($A['soft_dep'] == "") ? "(none)" : $A['soft_dep'];
-                 $des = ($A['short_des'] == "") ? "(no description)" : $A['short_des'];
-                 $credits = ($A['credits'] == "") ? "(no credits)" : $A['credits'];
-                 $retval = "<a href='javascript:void();' onclick='javascript:display_datalink(\"DISPLAY_DATA{$A['plugin_id']}\",event);'>{$A['name']}</a> <div class='plugin_data' style='display:none' id='DISPLAY_DATA{$A['plugin_id']}'><img style='float:right' onclick='javascriprt:hide_datalink(\"DISPLAY_DATA{$A['plugin_id']}\");' alt='Close' src='{$_CONF['site_url']}/images/close.gif' /><b>{$A['name']} {$A['version']}</b><br /><br />{$titular}<br /><br /><b>About:</b><br />{$des}<br /><br /><b>Following plugin dependencies are required:</b><br />{$dep}<br /><br /><b>Following software dependencies are required:</b><br />{$sdep}<br /><br /><b>Credits:</b><br />{$credits}</div>";
+                 $dep = ($A['dependencies'] == "") ? "({$LANG32[345]})" : $A['dependencies'];
+                 $sdep = ($A['soft_dep'] == "") ? "({$LANG32[345]})" : $A['soft_dep'];
+                 $des = ($A['short_des'] == "") ? "({$LANG32[345]})" : $A['short_des'];
+                 $credits = ($A['credits'] == "") ? "({$LANG32[345]})" : $A['credits'];
+                 $retval = "<a href='javascript:void();' onclick='javascript:smart_toggle_datalink(\"DISPLAY_DATA{$A['plugin_id']}\",event);'>{$A['name']}</a> <div class='plugin_data' style='display:none' id='DISPLAY_DATA{$A['plugin_id']}'><img style='float:right' onclick='javascriprt:hide_datalink(\"DISPLAY_DATA{$A['plugin_id']}\");' alt='Close' src='{$_CONF['site_url']}/images/close.gif' /><b>{$A['name']} {$A['version']}</b><br /><br />{$titular}<br /><br /><b>{$LANG32[340]}</b><br />{$des}<br /><br /><b>{$LANG32[341]}</b><br />{$dep}<br /><br /><b>{$LANG32[342]}</b><br />{$sdep}<br /><br /><b>{$LANG32[343]}</b><br />{$sdep}<br /><br /><b>Credits:</b><br />{$credits}</div>";
                  break;
          default:
             $retval = $fieldvalue;

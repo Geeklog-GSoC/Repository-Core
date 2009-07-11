@@ -6700,7 +6700,13 @@ function COM_handleError($errno, $errstr, $errfile='', $errline=0, $errcontext='
         return;
     }
 
-    /*
+ 	// Else is it a plugin update error handler 
+	if (isset($_POST['install_updates'])) {
+	    plugin_update_error_handler($errno, $errstr, $errfile, $errline, $errcontext);
+		exit;
+	}
+	
+	/*
      * If we have a root user, then output detailed error message:
      */
     if ((is_array($_USER) && function_exists('SEC_inGroup'))

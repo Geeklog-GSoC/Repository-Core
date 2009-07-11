@@ -1106,11 +1106,11 @@ $LANG32 = array(
     'dev' => 'Dev',
     318 => 'Repository URL',
     319 => 'Repository Name',
-    320 => 'Name field supports the + operator as AND to separate search terms, | as OR. Note that AND is evaluated before OR. Eg Geeklog+Plugin|Scape is evaluated as Geeklog and (Plugin OR Scape) ', // , and the ^ operator as OR for search terms.<br />&nbsp;&nbsp;However, note only one type of operator is allowed in a query - either + or ^ but not both'
+    320 => 'Name field supports the AND and OR operator. Note that AND is evaluated before OR. Eg Geeklog AND Plugin OR Scape is evaluated as Geeklog and (Plugin OR Scape) ', // , and the ^ operator as OR for search terms.<br />&nbsp;&nbsp;However, note only one type of operator is allowed in a query - either + or ^ but not both'
     321 => 'Security Warning',
     322 => 'Caution: The plugin you are attempting to retrieve may be malicious!',
     323 => 'This plugin is stored in an untrusted repository - ONLY install if you trust the author(s) of the plugin AND the repository. This may be an attempt to gain control of your Geeklog installation.',
-    324 => 'Get Me Out!',
+    324 => 'Cancel',
     325 => 'Proceed',
     326 => 'This plugin is from a certified safe repository! Install with pride!',
     327 => 'Caution: This plugin is from a non-certified safe repository - it may contain malicious code.<br />Only install if you trust the author(s) of this plugin.',
@@ -1121,7 +1121,18 @@ $LANG32 = array(
     332 => 'Install Updates',
     333 => 'There are no updates available at this moment - try again later!',
     334 => 'Upgrade(s) are available for the following plugins!',
-    335 => '(Must install manually)'
+    335 => '(Must install manually)',
+    336 => '(Warning: May be malicious update)',
+    337 => 'Warning: Some patches were not installed',
+    338 => 'Update was completed',
+    339 => 'Error: The file you selected for download does not exist - please try reloading your repository (Update Plugin List).',
+    340 => 'About:',
+    341 => 'Following plugin dependencies are required:',
+    342 => 'Following software dependencies are required:',
+    343 => 'Credits:',
+    344 => '(May be unsafe)',
+    345 => 'none',
+    346 => 'Caution: This patch is from a non-certified safe repository - it may contain malicious code.<br />&nbsp;Only install if you trust the author(s) of this plugin, and / or have reviewed the source code.'
     
 );
 
@@ -1299,7 +1310,8 @@ $MESSAGE = array(
     506 => 'Error: The repository you entered is blacklisted, for containing malicious software harmful to your computer. ',
     507 => 'Error: Failure to contact repository check database. Please try again later.',
     508 => "Error: The repository you entered does not exist (HTTP STATUS %s). Did you make a typing error? Host: %s",
-    509 => 'Error: Failed to get patch %s.. Please try again without this patch'
+    509 => 'Error: Failed to get patch %s.. Please try again without this patch',
+    510 => 'Error: Patch install failed for patch %s, aborting updates'
 );
 
 ###############################################################################
@@ -2009,5 +2021,16 @@ $LANG_configselects['Core'] = array(
     20 => array('Exact Phrase' => 'phrase', 'All of The Words' => 'all', 'Any of The Words' => 'any'),
     21 => array('HTML 4.01 Transitional' => 'html401transitional', 'HTML 4.01 Strict' => 'html401strict', 'XHTML 1.0 Transitional' => 'xhtml10transitional', 'XHTML 1.0 Strict' => 'xhtml10strict')
 );
+
+################################################################################
+# Updater Class Plugin Language
+$LANG_PUPDATE_ERROR = array(
+    100 => 'Update Failed: Unable to get a meaningful update package from the repository',
+    101 => 'Update Failed: Unable to find update class',
+    102 => 'Update Failed: Unable to process update',
+    103 => 'Update Failed: Unable to find required processing files'
+
+);
+
 
 ?>
