@@ -615,10 +615,10 @@ function listsearchedplugins($token)
     $header_arr = array(      # display 'text' and use table field 'field'
         array('text' => $LANG32[16], 'field' => 'name', 'sort' => false),
         array('text' => $LANG32[17], 'field' => 'version', 'sort' => false),
-        array('text' => $LANG32[311], 'field' => 'install', 'sort' => false),
         array('text' => $LANG32[318], 'field' => 'repository_name', 'sort' => false),
         array('text' => $LANG32[313], 'field' => 'state', 'sort' => false),
-        array('text' => $LANG32[312], 'field' => 'downloads', 'sort' => false)
+        array('text' => $LANG32[312], 'field' => 'downloads', 'sort' => false),
+        array('text' => $LANG32[311], 'field' => 'install', 'sort' => false)
     );
 
     $defsort_arr = array('field' => 'name', 'direction' => 'asc');
@@ -668,8 +668,8 @@ function listsearchedplugins($token)
     $version = (isset($_POST['plugin_version'])) ? COM_applyFilter($_POST['plugin_version']) : "";
     $repository = (isset($_POST['plugin_repo'])) ? COM_applyFilter($_POST['plugin_repo']) : "";
     
-    // Parse name field, take out +, strip white space around + signs, and each plus sign is exploded making it an array
-    $n_array = explode("+", $name);
+    // Parse name field, take out AND, strip white space around AND signs, and each plus sign is exploded making it an array
+    $n_array = explode("AND", $name);
     $count = 0;
     $name_str = "";
     $count_or = 0;
@@ -680,8 +680,8 @@ function listsearchedplugins($token)
         $trimmed = trim($value);
         
         // Explode value again, and check for ORS
-        $ors = explode("|", $trimmed);
-        // Ham | Chili + Bacon|Eggs| Tim is hungry
+        $ors = explode("OR", $trimmed);
+        // Ham OR Chili AND Bacon OR Eggs OR Tim is hungry
         // Above evaluated as: (Ham OR Chili) AND (Bacon OR Eggs OR Tim is hungry)
         // Are there any ors, nors, or xors?
         // And why are you still reading this - Move Along!
@@ -1723,7 +1723,8 @@ function updaterepositorylist()
             'downloads' => false, 
             'install' => false, 
             'state' => false, 
-            'ext' => false
+            'ext' => false,
+            'fname' => false
 
         );
  
@@ -1741,7 +1742,7 @@ function updaterepositorylist()
                       
                       // Insert into the repository listing database the values
                       $query = <<<OFF
-INSERT INTO {$_TABLES['plugin_repository_list']} (plugin_id, name, repository_name, version, db, dependencies, soft_dep, short_des, credits, vett, downloads, install, state, ext) VALUES('{$array_of_values['id']}','{$array_of_values['name']}', '{$result2['repository_url']}', '{$array_of_values['version']}','{$array_of_values['db']}','{$array_of_values['dependencies']}','{$array_of_values['soft_dep']}','{$array_of_values['short_des']}','{$array_of_values['credits']}','{$array_of_values['vett']}','{$array_of_values['downloads']}','{$array_of_values['install']}','{$array_of_values['state']}','{$array_of_values['ext']}');
+INSERT INTO {$_TABLES['plugin_repository_list']} (plugin_id, name, repository_name, version, db, dependencies, soft_dep, short_des, credits, vett, downloads, install, state, ext, fname) VALUES('{$array_of_values['id']}','{$array_of_values['name']}', '{$result2['repository_url']}', '{$array_of_values['version']}','{$array_of_values['db']}','{$array_of_values['dependencies']}','{$array_of_values['soft_dep']}','{$array_of_values['short_des']}','{$array_of_values['credits']}','{$array_of_values['vett']}','{$array_of_values['downloads']}','{$array_of_values['install']}','{$array_of_values['state']}','{$array_of_values['ext']}', '{$array_of_values['fname']}');
 OFF;
                       // Insert into database
                       DB_query($query);
@@ -1756,6 +1757,7 @@ OFF;
               switch ($reader->name) {
                   case "id":
                   case "name":
+                  case "fname":
                   case "version":
                   case "db":
                   case "dependencies":
@@ -1830,9 +1832,9 @@ function add_repository()
     
     // Get POST value
     $repository_url = (isset($_POST['repository_url'])) ? COM_applyFilter($_POST['repository_url']) : null;
- 
-    // Cannot be false, must be valid page
-    if ( ($repository_url === NULL) or (ereg('^http://[a-zA-Z0-9\-\./]+/repository/main', $repository_url) === FALSE) ) {
+    
+    // Cannot be false, must be valid page http://geeklog.tim/geeklog-1.6.0b1/public_html/repository/main
+    if ( ($repository_url === NULL) or (ereg('^http://[a-zA-Z0-9\-\./_\-]+/repository/main', $repository_url) === FALSE) ) {
         header("Location: plugins.php?msg=504");
         return;
     }
@@ -1871,12 +1873,12 @@ function add_repository()
     }
     
     // Now lets see if the repository actually exists - if not, then we will notify the user that they may have made an error
-    $a = new HTTP_Request(rawurlencode($repository_url). '/status.rep');
+    $a = new HTTP_Request($repository_url. '/status.rep');
     $a->sendRequest();
    
     // It must be 200 to exist (and status.rep must hold 200 to exist)
     $code = $a->getResponseCode();
-    $body = unserialize($a->getResponseBody);
+    $body = unserialize($a->getResponseBody());
     
     if ( ($code != 200) or ($body !== 200)) {
         header("Location: plugins.php?tmsg=508&enable_spf=1&code={$code}&host=".rawurlencode($repository_url));
@@ -1893,7 +1895,7 @@ function add_repository()
 * Show updates available
 *
 */
-function show_available_updates()
+function show_available_updates($message=false)
 {
     global $_CONF, $_TABLES, $LANG32, $LANG_ADMIN, $_IMAGE_TYPE, $REPOSITORY;
 
@@ -1919,6 +1921,10 @@ function show_available_updates()
 
     $retval .= COM_startBlock($LANG32[329], '',
                               COM_getBlockTemplate('_admin_block', 'header'));
+                              
+    if ($message) {
+        $retval .= COM_showMessageText($message);
+    }
 
     $retval .= ADMIN_createMenu(
         $menu_arr,
@@ -1937,7 +1943,7 @@ function show_available_updates()
     $heading = '<th class="admin-list-headerfield">'. $LANG32[16] .'</th><th class="admin-list-headerfield">'. $LANG32[330] .'</th><th class="admin-list-headerfield">'. $LANG32[331] .'</th><th class="admin-list-headerfield">'. $LANG32[22] .'</th>';
     $data = '';
     $data_up = '';
-    $heading_up = '<th class="admin-list-headerfield">'. $LANG32[16] .'</th>';
+    $heading_up = '<th class="admin-list-headerfield">'. $LANG32[16] .'</th><th class="admin-list-headerfield">'. $LANG32[17] .'</th>';
     
     // And now check for updates
     $ap = array();
@@ -1951,7 +1957,7 @@ function show_available_updates()
     // Loop for each installed plugin, until FALSE reached
     while ( ($result2 = DB_fetchArray($result)) !== FALSE) {
         // Attempt to retreive the listing from the repository local copy, to get the plugin ID
-        $result3 = DB_query("SELECT plugin_id, repository_name FROM {$_TABLES['plugin_repository_list']} WHERE name = '{$result2['pi_name']}' AND version = '{$result2['pi_version']}';");
+        $result3 = DB_query("SELECT plugin_id, repository_name FROM {$_TABLES['plugin_repository_list']} WHERE fname = '{$result2['pi_name']}' AND version = '{$result2['pi_version']}';");
     
         // Do query
         $result4 = DB_fetchArray($result3);
@@ -1962,15 +1968,20 @@ function show_available_updates()
         }
         
         // Load up array with repository_name, and the plugin_id, and version
-        $ap[$result4['repository_name']][$result4['plugin_id']] = array($result4['version'], $result2['pi_update_count']); 
+        $ap[$result4['repository_name']][$result4['plugin_id']] = array($result2['pi_version'], $result2['pi_update_count']); 
         
     }
 
+    // Get all repositories, get types (1 = banned, 2 = no idea, 3 = white listed)
+    $result = DB_query("SELECT * FROM {$_TABLES['plugin_repository']} WHERE enabled = 1;");
+    
+    while ( ($result2 = DB_fetchArray($result)) !== FALSE) {
+        // Set data = value
+        $REPOSITORY[$result2['repository_url']] = $result2['status'];
+    }
 
     // Read through XML
     // For each repository listing
-    $query = "SELECT * FROM {$_TABLES['plugin_repository']} WHERE enabled = 1;";
-    $result = DB_query($query);
     $css_style = 1;
     $css_style2 = 1;
     
@@ -1984,7 +1995,18 @@ function show_available_updates()
         // Did it fail (if so, we don't do anything)
         if ( ($result === FALSE) ) {
             continue;
-        }  
+        } 
+        $data = '';
+        
+        // Check repository
+        if ($REPOSITORY[$repository] == 3) {
+            $st_repo = '';
+            $titular = '';
+        }
+        else {
+            $st_repo = '<span style="color:red">' . $LANG32[336] . '</span>';
+            $titular = "<span style='color:red'>&nbsp;{$LANG32[346]}</span>";
+        }
         
         $reader = new XMLReader();
        
@@ -2035,18 +2057,19 @@ function show_available_updates()
                       }
                       
                       if ($array_of_values['automatic_install'] == '1') {
-                          $fsn = "<input type='checkbox' name='{$array_of_values['id']}' value='{$repository},{$array_of_values['ext']},{$array_of_values['name']}' checked='checked' />";
+                          $fsn = "<input type='checkbox' name='{$array_of_values['id']}' value='{$repository},{$array_of_values['ext']},{$array_of_values['name']},{$array_of_values['update_number']}' checked='checked' />";
                           $psg = '';
                       }
                       else {
                           $fsn =  "<input type='button' name='postmsg' value='{$LANG32[316]}' />";                  
                           $psg = $LANG32[335];
                       }
-                      
+ 
                       // Insert into variable
+                      $des = ($array_of_values['description'] == '') ? '('. $LANG32[345] .')' : $array_of_values['description'];
                       $data .= <<<MONSTERS
 <tr class="pluginRow{$css_style}" onmouseover="className='pluginRollOver';" onmouseout="className='pluginRow{$css_style}';">
-<td class="admin-list-field">{$array_of_values['name']} {$psg}</td>      
+<td class="admin-list-field"><a href='javascript:void();' onclick='javascript:smart_toggle_datalink("DISPLAY_DATA{$array_of_values['plugin_id']}",event);'>{$array_of_values['name']}</a> <div class='plugin_data' style='display:none' id='DISPLAY_DATA{$array_of_values['plugin_id']}'><img style='float:right' onclick='javascriprt:hide_datalink("DISPLAY_DATA{$array_of_values['plugin_id']}");' alt='Close' src='{$_CONF['site_url']}/images/close.gif' /><b>{$array_of_values['name']}</b><br /><br />{$titular}<br /><br /><b>{$LANG32[340]}</b><br />{$des}<br /><br /><input type="button" name='bargain' onclick="window.location = '{$repository}/patches/get_patch.php?pid={$array_of_values['id']}';" value='{$LANG32[316]}' /></div> {$psg} {$st_repo}</td>      
 <td class="admin-list-field">{$array_of_values['version']}</td>
 <td class="admin-list-field">{$array_of_values['severity']}</td>
 <td class="admin-list-field">{$fsn}</td>
@@ -2059,7 +2082,7 @@ MONSTERS;
                   }
               }
               else if ($reader->name == "upgrade") {
-                  if ($uprade == FALSE) {
+                  if ($upgrade == FALSE) {
                       $upgrade = true;
                   }
                   else {
@@ -2141,7 +2164,7 @@ UPGRADE;
             'list'   => 'list.thtml')
         );
         $admin_templates2->set_var( 'header_row', $heading_up);
-        $admin_templates2->set_var( 'formfields_top', $LANG32[334]);
+        $admin_templates2->set_var( 'formfields_top', $LANG32[334] . '<br /><br />');
         $admin_templates2->set_var( 'show_deleteimage', 'display:none;');
         $admin_templates2->set_var( 'item_row', $data_up);
         $admin_templates2->parse('output', 'list');
@@ -2162,27 +2185,61 @@ UPGRADE;
     return $retval;
 }
 
+$PLUGIN_UPDATE_SQL = array();
+$PLUGIN_UPDATE_ERROR = false;
+
+/**
+  * Handle errors.
+  *
+  * This function handles errors when the update process is in session
+  *
+  * @param  int     $errno      Error Number.
+  * @param  string  $errstr     Error Message.
+  * @param  string  $errfile    The file the error was raised in.
+  * @param  int     $errline    The line of the file that the error was raised at.
+  * @param  array   $errcontext An array that points to the active symbol table at the point the error occurred.
+  */
+$ERROR_NOW = false;
+function plugin_update_error_handler($errno, $errstr, $errfile='', $errline=0, $errcontext='')
+{
+   global $ERROR_NOW, $_CONF;
+   echo $errstr, 'ON', $errline , ' IN ', $errfile;exit;
+   // Doesn't know what to do here atm 
+   $ERROR_NOW = true;   
+   return true;
+}
+
 /**
 * Function starts the update process
-*
+* @return return value
 */
 function start_update_process()
 {
+    global $ERROR_NOW, $_CONF, $LANG32;
+    require_once $_CONF['path_system'] . 'classes/pluginupdater.class.php';
+
+    $PLUGIN_UPDATE = true;
+
+    // Create instance of update class
+    $update = new pluginupdater();
+
     // We loop over the POST values, for each one being an update
     foreach ($_POST as $name => $value) {
         // Since this will also pick up the submit button, we need to exclude it
-        if ($name == "install_updates") {
+        if ( ($name == "install_updates") or ($name == "bargain")) {
             continue;
         }
+
+        $ERROR_NOW = false;
         
         // The way the POST values are set up is that the names are the patch_id.. Since checkboxes are only returned as POST values if they are not checked, then we are good to go as all coming here are checked.
         $id = (int)$name;
-        $arr = explode(",", $value);
+        $arr = explode(",", $value); // The value is : 
         $get_path = $arr[0] . '/patches/get_patch.php?pid='.$id;
         $local =  $_CONF['path_data'] . 'patch_pid' . $id . COM_applyFilter($arr[1]);
         // Lets make a send request to the update page
         $fresult = download_file($get_path, $local);
-    
+
         // Error?
         if ($fresult === FALSE) {
             // Error downloading file, may not exist, may be moved. Notify user that they may need to refresh their repository listing
@@ -2200,9 +2257,79 @@ function start_update_process()
         require_once 'System.php';
         
         $archive = new unpacker($local);
-        $archive->unpack($_CONF['path'].'data/';
+        $tmp = $archive->getlist();
+        $dirname = preg_replace('/\/.*$/', '', $tmp[0]['filename']); // Thanks matt for this regex :P
+        
+        if (empty($dirname)) { 
+            PLData::failedupdate($arr[2], 100);
+            continue;
+        }
+        
+        // Install the update
+        $archive->unpack($_CONF['path'].'data/');
+        
+        
+        // So all is good, we need to include the class file
+        if (file_exists($_CONF['path'].'data/'.$dirname.'/update.php')) {
+            require_once $_CONF['path'].'data/'.$dirname.'/update.php';
+        }
+        else {
+            PLData::failedupdate($arr[2], 103);
+            continue;
+        }
+
+        // Include the class file that should exist, but first we need to make sure that the class even exists
+        if ( (!class_exists('UpdatePlugin')) or (!(method_exists('UpdatePlugin', 'init')))) {
+            PLData::failedupdate($arr[2], 101);
+            echo UpdatePlugin instanceof PluginUpdateInterface; exit;
+            continue;         
+        }
+        
+        // Now we need to get the list of tables this plugin requires, the plugin name, and the SQL to perform
+        $update->set_var(UpdatePlugin::$_SQL_PTABLES, 'tbl');
+        $update->set_var(UpdatePlugin::$_SQL_DATA, 'sql');
+        $update->set_var(UpdatePlugin::$PLUGIN_NAME, 'pn');
+        $update->set_var($dirname, 'dir');
+        
+        // And now we call the update process to start backups. As well, SQL will be performed, and files will be moved
+        $result = $update->start();
+
+        if ( ($result === FALSE) or ($ERROR_NOW === TRUE)) {
+            $update->restore();
+            $update->cleanup($local);
+            PLData::failedupdate($arr[2], 102);
+            continue;               
+        }
+
+        // Call the remaining Update::function if the update plugin user has any extra stuff to change
+        $result = UpdatePlugin::init();
+        
+        if ( ($result === FALSE) or ($ERROR_NOW === TRUE)) {
+            $update->restore();
+            $update->cleanup($local);
+            PLData::failedupdate($arr[2], 102);
+            continue;               
+        }
+
+        $result = $update->finish($arr[3]);
+
+        if ( ($result === FALSE) or ($ERROR_NOW === TRUE)) {
+            $update->restore();
+            $update->cleanup($local);
+            PLData::failedupdate($arr[2], 102);
+            continue;               
+        }
+ 
+        $update->cleanup($local);
         
     }
+
+    // Now the updates have either been installed, or installation has failed
+    $retval_tmp = PLData::report($LANG32[338] . '<br />');
+    $retval = COM_siteHeader('menu', $LANG32[13]);
+    $retval .= show_available_updates($retval_tmp);
+    $retval .= COM_siteFooter();   
+    return $retval;
 }
 
 // MAIN

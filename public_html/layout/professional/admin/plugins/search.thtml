@@ -19,11 +19,14 @@
 				    <tr>
                                         <td class="alignright"><b>{lang_307}</b></td>
                                         <td><input type="text" value="" name="plugin_name"{xhtml}></td>
-                                    </tr>
+                                    </tr> <!-- // Not in use at the moment, maybe later
                                     <tr>
                                         <td class="alignright"><b>{lang_308}</b></td>
                                         <td><input type="text" value="" name="plugin_version"{xhtml}></td>
                                     </tr>
+                                    So we include a hidden field to work
+                                    --> 
+                                    <input type="hidden" value="" name="plugin_version"{xhtml}>
                                      <tr>
                                         <td class="alignright"><b>{lang_309}</b></td>
                                         <td><select name="plugin_repo">

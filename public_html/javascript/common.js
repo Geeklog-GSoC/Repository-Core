@@ -98,21 +98,41 @@ function set_topleftpos(ttop, lleft, id)
 {
     document.getElementById(id).style.top = (ttop -170) + 'px';
     document.getElementById(id).style.left = lleft + 'px';
-}
+};
+
+// Either displays or hides the data link
+function smart_toggle_datalink(id, e, divisor)
+{
+    if (document.getElementById(id).style.display == "none") {
+        display_datalink(id,e, divisor);
+    }
+    else {
+        hide_datalink(id);
+    }
+};
 
 // Displays data link
-function display_datalink(id,e)
+function display_datalink(id,e, divisor)
 {
     var arr = XYpos(e);
-    set_topleftpos(arr[1], arr[0], id);
+    
+    if (divisor) {
+        var tleft = arr[0] / divisor;
+    }
+    else {
+        var tleft = arr[0];
+    }
+    
+    
+    set_topleftpos(arr[1],tleft, id);
     document.getElementById(id).style.display = "";
-}
+};
 
 // Hide data link
 function hide_datalink(id)
 {
     document.getElementById(id).style.display = "none";
-}
+};
 
 // Open warning box, warning of potential malicious content
 function warn_malicious_plugin(id,e, mode)
@@ -125,8 +145,8 @@ function warn_malicious_plugin(id,e, mode)
     }
     var data = '<b style="color:red">'+MALICIOUS_PLUGIN_WARN['warning']+'!!</b><br /><br />'+MALICIOUS_PLUGIN_WARN['msg']+'<br /><br />'+MALICIOUS_PLUGIN_WARN['msg2']+'<br /><br /><input type="button" name="get_me_out" value="'+MALICIOUS_PLUGIN_WARN['cancel']+'" onclick="javascript:hide_maliciouswarning();" /><input type="button" name="install" value="'+MALICIOUS_PLUGIN_WARN['install']+'" onclick="javascript:hide_maliciouswarning();window.location = \'plugins.php?cmd='+cmd+'&id='+id+'\'" />';
     document.getElementById("MALICIOUS_PLUGIN_WARN").innerHTML = data;    
-    display_datalink("MALICIOUS_PLUGIN_WARN",e);
-}
+    display_datalink("MALICIOUS_PLUGIN_WARN",e, 2);
+};
 
 // Bring up install/download plugin warning enabled box
 // id is plugin id, e = event
@@ -155,10 +175,10 @@ function is_downloadinstall_plugin(mode, id, e)
             warn_malicious_plugin(id,e, mode);
             break;
     }
-}
+};
 
 // Hides warning
 function hide_maliciouswarning()
 {
     hide_datalink("MALICIOUS_PLUGIN_WARN");
-}
+};
