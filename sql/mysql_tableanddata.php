@@ -733,7 +733,7 @@ CREATE TABLE `{$_TABLES['plugin_repository']}` (
 ";
 
 $_SQL[] = "
-CREATE TABLE `{$_TABLES['plugin_repository_list'}` (
+CREATE TABLE `{$_TABLES['plugin_repository_list']}` (
   `plugin_id` int(11) default NULL,
   `name` varchar(255) default NULL,
   `repository_name` varchar(255) default NULL,
