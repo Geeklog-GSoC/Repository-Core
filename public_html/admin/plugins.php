@@ -1828,7 +1828,7 @@ function show_add_repo()
 function add_repository()
 {
     // Globals 
-    global $_TABLES;
+    global $_TABLES, $_CONF;
     
     // Get POST value
     $repository_url = (isset($_POST['repository_url'])) ? COM_applyFilter($_POST['repository_url']) : null;
@@ -1841,7 +1841,7 @@ function add_repository()
     
     // Now check validate repository
     include "HTTP/Request.php";
-    $a = new HTTP_Request('http://geeklog.tim/geeklog-1.6.0b1/public_html/repositorylisting/check_repository.php?repository='.rawurlencode($repository_url));
+    $a = new HTTP_Request( $_CONF['geeklog_auth_service'] . 'repositorylisting/check_repository.php?repository='.rawurlencode($repository_url));
     $a->sendRequest();
     
     // If the content-length is 0, it looks like an error occurred
@@ -1849,7 +1849,7 @@ function add_repository()
 
    if ( ($header['content-length'] == 0) or ($a->getResponseCode() != 200)) {
         // Error, redirect
-        header("Location: plugins.phsp?msg=507");
+        header("Location: plugins.php?msg=507");
         return;
     }
 
