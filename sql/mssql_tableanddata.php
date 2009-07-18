@@ -241,6 +241,7 @@ CREATE TABLE [dbo].[{$_TABLES['plugins']}] (
     [pi_version] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL ,
     [pi_gl_version] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL ,
     [pi_enabled] [tinyint] NOT NULL ,
+    [pi_update_count] [int] DEFAULT (0) ,
     [pi_homepage] [varchar] (128) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL
 ) ON [PRIMARY]
 ";
@@ -479,7 +480,6 @@ CREATE TABLE [dbo].[{$_TABLES['vars']}] (
     [value] [varchar] (128) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
 ) ON [PRIMARY]
 ";
-
 
 $_SQL[] = "ALTER TABLE [dbo].[{$_TABLES['access']}] ADD
     CONSTRAINT [PK_{$_TABLES['access']}] PRIMARY KEY  CLUSTERED
@@ -1483,6 +1483,38 @@ $_SQL[] = "INSERT INTO dateCommandCrossReference (mysqlCommand, sqlServerCommand
 
 
 
+// Repository Manager Client
+$_SQL[] = "
+CREATE TABLE [dbo]. [{$_TABLES['plugin_repository']}] (
+  [repository_url] [varchar] (255) default NULL,
+  [enabled] [tinyint] (4) default NULL,
+  [status] tinyint default 0
+) ON [PRIMARY]
+";
+
+
+$_SQL[] = "
+CREATE TABLE [dbo]. [{$_TABLES['plugin_repository_list'}] (
+  [plugin_id] [int] (11) default NULL,
+  [name] [varchar] (255) default NULL,
+  [repository_name] [varchar] (255) default NULL,
+  [version] [varchar] (255) default NULL,
+  [db] [int] (4) default NULL,
+  [dependencies] text,
+  [soft_dep] text,
+  [short_des] text,
+  [credits] text,
+  [vett] [int] (11) default NULL,
+  [downloads] [int] (11) default NULL,
+  [install] [int] (4) default NULL,
+  [state] [varchar] (255) default NULL,
+  [ext] [varchar] (100) default NULL,
+  [fname] [varchar] (255) default NULL,
+) ON PRIMARY
+";
+
+$_SQL[] = "INSERT INTO {$_TABLES['plugin_repository']} (repository_url, enabled, status) VALUES 
+('http://www.geeklog.net/repository/main', 1, 3);";
 
 
 

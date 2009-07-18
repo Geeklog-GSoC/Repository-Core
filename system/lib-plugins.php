@@ -2623,13 +2623,11 @@ function chk_updates_prepo()
 {
     session_start();
     // If session is initialized, do not load
-   /* if ($_SESSION['plugin_repository_admin_panel_updates_chk'] === true) {
+    if ($_SESSION['plugin_repository_admin_panel_updates_chk'] === true) {
         return;
     }
     $_SESSION['plugin_repository_admin_panel_updates_chk'] = true;
-*/
-#TMP TESTING
-if($_GET['enable_spf']) { return; }
+
     // Declare Variables
     global $_CONF, $_TABLES;    
     
@@ -2645,7 +2643,7 @@ if($_GET['enable_spf']) { return; }
     
     // Send off post data
     $data = "REPOSITORIES=".rawurlencode(serialize($list_repo));    
-    $result = do_post_request('check_repository.php?cmd=update', $data);    
+    $result = do_post_request($_CONF['geeklog_auth_service'] . 'repositorylisting/check_repository.php?cmd=update', $data);    
     $return_array = unserialize($result);
     // Did it return false, its ok
     if ( ($result === FALSE) or ($return_array === FALSE) or (count($return_array) < 1)) {
@@ -2698,15 +2696,12 @@ if($_GET['enable_spf']) { return; }
         
     }
 
-### DEBUG HERE ####
-   $ap['http://geeklog.tim/geeklog-1.6.0b1/public_html/repository'][5] = array('1.0.0.1', 0);
-
     // Array full of data, lets loop through array, and for each repository URL, send for a list of updates.
     foreach ($ap as $repository => $plugin_value) {
         // Send to repository
         $data = "REPOSITORY_ARRAY_INSTALLED=".rawurlencode(serialize($plugin_value));
         
-        $result = do_post_request($repository. '/cmd/nchkpdate.php?cmd=1', $data);
+        $result = do_post_request($repository . '/cmd/nchkpdate.php?cmd=1', $data);
 
         // Did it fail (if so, we don't do anything)
         if ( ($result === FALSE) or (unserialize($result) === FALSE)) {
@@ -2753,7 +2748,7 @@ function do_post_request($url, $data, $optional_headers = null)
      
      // Create stream, read in contents
      $ctx = stream_context_create($params);
-     $fp = fopen($url, 'rb', false, $ctx);
+     $fp = @fopen($url, 'rb', false, $ctx);
      if (!$fp) {
         return false;
      }

@@ -353,6 +353,10 @@ function install_config()
     $c->add('disable_webservices',   1, 'select', 7, 40, 0, 1840, TRUE);
     $c->add('restrict_webservices',  0, 'select', 7, 40, 0, 1850, TRUE);
     $c->add('atom_max_stories',     10, 'text',   7, 40, 0, 1860, TRUE);
+    
+    // Repository Manager Client
+    $c->add('geeklog_auth_service', 'http://www.geeklog.net/', 'hidden', 0, 0, 0, 0, TRUE);
+    
 }
 
 ?>
