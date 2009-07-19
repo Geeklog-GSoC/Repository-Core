@@ -1024,3 +1024,33 @@ a.tooltip:hover span {
 
 /* End of Common Plugin CSS */
 
+/* Css for displaying data about plugins */
+div.plugin_data {
+    width:600px;
+    min-height:100px;
+    height:auto;
+    position:absolute;
+    left:0;
+    top:0;
+    background:#eeeeff;
+    border:1px groove #000;
+    padding:10px;
+}
+
+div.plugin_data img {
+    cursor:hand;
+    cursor:pointer;
+}
+
+div.pluginfo {
+    width:300px;
+    min-height:200px;
+    height:auto;
+    position:absolute;
+    left:0;
+    top:0;
+    background:#eeeeff;
+    border:1px groove #000;
+    padding:10px;
+    text-align:center;
+}
