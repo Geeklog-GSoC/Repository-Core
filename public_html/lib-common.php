@@ -4547,8 +4547,8 @@ function ShowTMessage($msg)
                 if ( ($name == "tmsg") or ($name == "enable_spf")) {
                     continue;
                 }
-              
-                $eval .= ",COM_applyFilter(\$_GET['$name'])";
+                $ball = str_replace(':nl:', '<br />', COM_applyFilter($_GET[$name]));
+                $eval .= ",'<span style=\"font-weight:normal;\">{$ball}</span>'";
             }
             $eval .= ');';
             
