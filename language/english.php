@@ -1132,7 +1132,8 @@ $LANG32 = array(
     343 => 'Credits:',
     344 => '(May be unsafe)',
     345 => 'none',
-    346 => 'Caution: This patch is from a non-certified safe repository - it may contain malicious code.<br />&nbsp;Only install if you trust the author(s) of this plugin, and / or have reviewed the source code.'
+    346 => 'Caution: This patch is from a non-certified safe repository - it may contain malicious code.<br />&nbsp;Only install if you trust the author(s) of this plugin, and / or have reviewed the source code.',
+    347 => 'Warning: It was impossible to update from the following repositories:'
     
 );
 
@@ -1301,7 +1302,7 @@ $MESSAGE = array(
     400 => 'Not all required fields have been passed validation', // Error codes in the 400 range reserved for CUSTOM membership
     401 => 'Please enter Fullname',
     // Error codes in the 500 range reserved for Repository Plugin Management
-    500 => 'Repository Update Successful',
+    500 => 'Repository Update Successful %s',
     501 => 'Error: The plugin you selected does not exist - It might be time to reload the repository :)',
     502 => 'Attention: There are %d update(s) and %d upgrade(s) available for the plugins installed!<br />Please <a href="plugins.php?mode=chkupdates">update them right away</a>, as there may be important security updates available.',
     503 => 'Repository URL deleted successfully',

@@ -1701,13 +1701,19 @@ function updaterepositorylist()
     
     // Truncate Table
     DB_query("TRUNCATE {$_TABLES['plugin_repository_list']};");
+    $some_repos = array();
     
     // Loop through listings
     while ( ($result2 = DB_fetchArray($result)) !== FALSE) {
         // XML Pull
         $reader = new XMLReader();
 
-        $reader->open($result2['repository_url']. '/cmd/list.php');
+        $boolean = @$reader->open($result2['repository_url']. '/cmd/list.php');
+        if ($boolean === FALSE) {
+            $some_repos[] = $result2['repository_url'];
+            continue;
+        }
+        
         $plugin = false;
         $array_of_values = array();
         $array_of_key_gen = array(
@@ -1786,6 +1792,8 @@ OFF;
         $reader->close();
 
     }
+    
+    return $some_repos;
 }
 
 
@@ -2402,10 +2410,20 @@ if (($mode == $LANG_ADMIN['delete']) && !empty($LANG_ADMIN['delete'])) {
 
 } elseif ($mode == 'updatelist') {
     // Call do update list
-    updaterepositorylist();
+    $array_of_failed = updaterepositorylist();
     
+    if (count($array_of_failed) > 0) {
+        $str = ':nl:' . $LANG32[347] . ':nl:';
+        foreach ($array_of_failed as $key) {
+            $str .= $key . ":nl:";
+        }
+    }
+    else {
+        $str = "";
+    }
+    $str = rawurlencode($str);
     // Say msg
-    $display = COM_refresh($_CONF['site_admin_url'] . '/plugins.php?msg=500');
+    $display = COM_refresh($_CONF['site_admin_url'] . '/plugins.php?tmsg=500&enable_spf=1&str='.$str);
     
 } elseif ($mode == 'splugin') {
     $display .= COM_siteHeader('menu', $LANG32[304]);
