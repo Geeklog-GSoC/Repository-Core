@@ -300,9 +300,13 @@ function mailstory($sid, $to, $toemail, $from, $fromemail, $shortmsg)
         return $retval;
     }
 
-    $sql = "SELECT uid,title,introtext,bodytext,commentcode,UNIX_TIMESTAMP(date) AS day FROM {$_TABLES['stories']} WHERE sid = '$sid'";
-    $result = DB_query ($sql);
-    $A = DB_fetchArray ($result);
+    $sql = "SELECT uid,title,introtext,bodytext,commentcode,UNIX_TIMESTAMP(date) AS day FROM {$_TABLES['stories']} WHERE sid = '$sid'" . COM_getTopicSql('AND') . COM_getPermSql('AND');
+    $result = DB_query($sql);
+    if (DB_numRows($result) == 0) {
+        return COM_refresh($_CONF['site_url'] . '/index.php');
+    }
+    $A = DB_fetchArray($result);
+
     $shortmsg = COM_stripslashes ($shortmsg);
     $mailtext = sprintf ($LANG08[23], $from, $fromemail) . LB;
     if (strlen ($shortmsg) > 0) {
@@ -390,6 +394,12 @@ function mailstoryform ($sid, $to = '', $toemail = '', $from = '',
         $retval .= COM_endBlock (COM_getBlockTemplate ('_msg_block', 'footer'));
 
         return $retval;
+    }
+
+    $result = DB_query("SELECT COUNT(*) AS count FROM {$_TABLES['stories']} WHERE sid = '$sid'" . COM_getTopicSql('AND') . COM_getPermSql('AND'));
+    $A = DB_fetchArray($result);
+    if ($A['count'] == 0) {
+        return COM_refresh($_CONF['site_url'] . '/index.php');
     }
 
     if ($msg > 0) {
