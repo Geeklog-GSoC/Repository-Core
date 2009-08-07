@@ -1845,9 +1845,7 @@ function add_repository()
         header("Location: plugins.php?mode=lstrepo&msg=504");
         return;
     }
-    /*
-    DEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUG
-    DEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGv
+ 
     // Now check validate repository
     include "HTTP/Request.php";
     $a = new HTTP_Request( $_CONF['geeklog_auth_service'] . 'repositorylisting/check_repository.php?repository='.rawurlencode($repository_url));
@@ -1893,10 +1891,7 @@ function add_repository()
         header("Location: plugins.php?tmsg=508&enable_spf=1&code={$code}&host=".rawurlencode($repository_url));
         return;    
     }
-    */
-    $status = 2;
-    #DEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUG
-    #DEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUG    
+ 
     // Add to database
     DB_query("INSERT INTO {$_TABLES['plugin_repository']}(repository_url, enabled, status) VALUES('{$repository_url}',1, {$status});");
     
