@@ -79,12 +79,12 @@ IE_SUCKS = navigator.appName.indexOf("Microsoft");
 function XYpos(e) 
 {
     if (IE_SUCKS == true) { // Hahaha, look at this, IE_SUCKS is TRUE :P
-        xPos = event.screenX;
+        xPos = 300;
         yPos = event.screenY;
                 
     }
     else {
-        xPos = e.screenX;
+        xPos = 300;
         yPos = e.screenY;
                 
     }
@@ -96,7 +96,7 @@ function XYpos(e)
 // Sets left and top attributes
 function set_topleftpos(ttop, lleft, id)
 {
-    document.getElementById(id).style.top = (ttop -170) + 'px';
+    document.getElementById(id).style.top = (ttop -140) + 'px';
     document.getElementById(id).style.left = lleft + 'px';
 };
 
@@ -117,7 +117,13 @@ function display_datalink(id,e, divisor)
     var arr = XYpos(e);
     
     if (divisor) {
-        var tleft = arr[0] / divisor;
+        if (divisor == false) {
+            var tleft = (screen.width / 2);
+            arr[1] = (screen.height / 2);
+        }
+        else {
+            var tleft = arr[0] / divisor;
+        }
     }
     else {
         var tleft = arr[0];
@@ -145,7 +151,7 @@ function warn_malicious_plugin(id,e, mode)
     }
     var data = '<b style="color:red">'+MALICIOUS_PLUGIN_WARN['warning']+'!!</b><br /><br />'+MALICIOUS_PLUGIN_WARN['msg']+'<br /><br />'+MALICIOUS_PLUGIN_WARN['msg2']+'<br /><br /><input type="button" name="get_me_out" value="'+MALICIOUS_PLUGIN_WARN['cancel']+'" onclick="javascript:hide_maliciouswarning();" /><input type="button" name="install" value="'+MALICIOUS_PLUGIN_WARN['install']+'" onclick="javascript:hide_maliciouswarning();window.location = \'plugins.php?cmd='+cmd+'&id='+id+'\'" />';
     document.getElementById("MALICIOUS_PLUGIN_WARN").innerHTML = data;    
-    display_datalink("MALICIOUS_PLUGIN_WARN",e, 2);
+    display_datalink("MALICIOUS_PLUGIN_WARN",e);
 };
 
 // Bring up install/download plugin warning enabled box
