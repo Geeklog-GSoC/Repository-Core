@@ -1845,7 +1845,9 @@ function add_repository()
         header("Location: plugins.php?mode=lstrepo&msg=504");
         return;
     }
- 
+    /*
+    DEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUG
+    DEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGv
     // Now check validate repository
     include "HTTP/Request.php";
     $a = new HTTP_Request( $_CONF['geeklog_auth_service'] . 'repositorylisting/check_repository.php?repository='.rawurlencode($repository_url));
@@ -1891,7 +1893,10 @@ function add_repository()
         header("Location: plugins.php?tmsg=508&enable_spf=1&code={$code}&host=".rawurlencode($repository_url));
         return;    
     }
- 
+    */
+    $status = 2;
+    #DEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUG
+    #DEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUG    
     // Add to database
     DB_query("INSERT INTO {$_TABLES['plugin_repository']}(repository_url, enabled, status) VALUES('{$repository_url}',1, {$status});");
     
@@ -1907,6 +1912,9 @@ function show_available_updates($message=false)
     global $_CONF, $_TABLES, $LANG32, $LANG_ADMIN, $_IMAGE_TYPE, $REPOSITORY, $LANG09;
 
     require_once $_CONF['path_system'] . 'lib-admin.php';
+    
+    // Check repository
+    check_repository_lists();
     
     // We need to connect to the XML file, and return the data dictating the 
     $retval = '';
@@ -2228,6 +2236,54 @@ function plugin_update_error_handler($errno, $errstr, $errfile='', $errline=0, $
    // Doesn't know what to do here atm 
    $ERROR_NOW = true;   
    return true;
+}
+
+/**
+* Function checks for updates to the REPOSITORY blacklist, and updates accordingly 
+* @return void
+*/
+function check_repository_lists()
+{
+    // Declare Variables
+    global $_CONF, $_TABLES;    
+    
+    // Do a repository listing update
+    $list_repo = array();
+    
+    $result = DB_query("SELECT repository_url FROM {$_TABLES['plugin_repository']};");
+    
+    // Loop through results, storing them in an array to be sent off
+    while ( ($result2 = DB_fetchArray($result)) !== FALSE) {
+        $list_repo[] = $result2['repository_url'];
+    }
+    
+    // Send off post data
+    $data = "REPOSITORIES=".rawurlencode(serialize($list_repo));    
+    $result = do_post_request($_CONF['geeklog_auth_service'] . 'repositorylisting/check_repository.php?cmd=update', $data);    
+    $return_array = unserialize($result);
+    // Did it return false, its ok
+    if ( ($result === FALSE) or ($return_array === FALSE) or (count($return_array) < 1)) {
+        
+    }
+    else {
+        // We should get back an array like so:
+        // ARRAY [repository_name] => state
+        foreach ($return_array as $key => $value) {
+            // Update DB
+            $state = (int)$value;
+            
+            // Validate state
+            if ($state === 1) {
+                // Banned URL, must delete
+                DB_query("DELETE FROM {$_TABLES['plugin_repository']} WHERE repository_name = '{$url}';");
+            }
+            else {
+                $state = ($state === 3) ? 3 : 2;
+                $url = COM_applyFilter($key);
+                DB_query("UPDATE {$_TABLES['plugin_repository']} SET state = '{$state}' WHERE repository_name = '{$url}';");
+            }
+        }
+    }
 }
 
 /**
