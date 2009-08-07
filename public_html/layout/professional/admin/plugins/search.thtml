@@ -1,11 +1,15 @@
-                           {start_block_editor}
+                           
+                            <div class="aligncenter">
+                                <div class="block-divider"></div>
+                            </div><div class="block-box">
+                            {start_block_editor}
                             <form action="{site_admin_url}/plugins.php" method="post">
                                 <table cellspacing="0" cellpadding="3">
                                     <tr>
                                         <td><img src="{pi_icon}" alt=""{xhtml}></td>
                                         <td>
-                                            <input type="submit" value="{lang_search}" name="search"{xhtml}>
-                                            <input type="button" onclick="window.location = 'plugins.php';" value="{lang_cancel}" name="search"{xhtml}>
+                                            
+
                                         </td>
                                     </tr>
                                     <tr>
@@ -34,7 +38,14 @@
 					    {value_0}
 					</td>
                                     </tr>
+                                    <tr>
+                                        <td class="alignright"></td>
+                                        <td>
+                                            <input type="submit" value="{lang_search}" name="search"{xhtml}>
+                                        </td>
+                                    </tr>
 
                                    </table>
+                                   <input type="hidden" name="{CSRF_TOKEN}" value="{TOKENVAL}" />
                             </form>
-                            {end_block}
+</div>                            {end_block}

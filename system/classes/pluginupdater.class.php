@@ -122,6 +122,7 @@ class pluginupdater
     private $SQL_NEW;
     private $PLNAME;
     private $DIR;
+    private $SJR_TYPE;
     
     /**
     * Constructor
@@ -135,6 +136,7 @@ class pluginupdater
         $SQL_NAME = array();
         $this->PLNAME = '';
         $this->DIR = '';
+        $this->SJR_TYPE = 'update';
     }
     
     // Destructor
@@ -164,6 +166,9 @@ class pluginupdater
                 break;
             case 'dir':
                 $this->DIR = $var;
+                break;
+            case 'type':
+                $this->SJR_TYPE = $var;
                 break;
         }
     }
@@ -217,7 +222,7 @@ class pluginupdater
 
     /**
     * Finish update installation
-    * @param integer  $int  The update count number
+    * @param integer  $int  The update count number || The new version number (depending on if 
     *
     * @return boolean true | false
     */
@@ -225,10 +230,19 @@ class pluginupdater
     {
         global $_TABLES;
  
-        $int = (int)$int;
+        // Update?
+        if ($this->SJR_TYPE == 'update') {        
+            $int = (int)$int;
 
-        // Update plugin table
-        DB_query("UPDATE {$_TABLES['plugins']} SET pi_update_count = {$int} WHERE pi_name = '{$this->PLNAME}';");
+            // Update plugin table
+            DB_query("UPDATE {$_TABLES['plugins']} SET pi_update_count = {$int} WHERE pi_name = '{$this->PLNAME}';");
+        }
+        else {
+            $int = COM_applyFilter($int);
+            
+            // Update plugin table with new version
+            DB_query("UPDATE {$_TABLES['plugins']} SET pi_version = '{$int}' WHERE pi_name = '{$this->PLNAME}';");
+        }
 
         // return true
         return true;

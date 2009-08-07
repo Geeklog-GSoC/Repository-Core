@@ -424,7 +424,7 @@ function do_uninstall($pi_name)
 *
 */
 
-function pluginsearch()
+function pluginsearch($token=null)
 {
     global $_CONF, $_TABLES, $_USER, $LANG32, $LANG_ADMIN;
 
@@ -446,6 +446,8 @@ function pluginsearch()
     $plg_templates->set_var('lang_309', $LANG32[309]);
     $plg_templates->set_var('lang_310', $LANG32[310]);
     $plg_templates->set_var('lang_320', $LANG32[320]);
+    $plg_templates->set_var('CSRF_TOKEN', CSRF_TOKEN);
+    $plg_templates->set_var('TOKENVAL', $token);
     
     // Get DB info about current repositories
     $result = DB_query("SELECT * FROM {$_TABLES['plugin_repository']};");
@@ -496,16 +498,13 @@ function listplugins($token)
     $menu_arr = array (
                     array('url' => $_CONF['site_admin_url'],
                           'text' => $LANG_ADMIN['admin_home']),
-                    array('url' => 'plugins.php?mode=splugin',
-                          'text' => $LANG32[300]),
+                    
                     array('url' => 'plugins.php?mode=chkupdates',
                           'text' => $LANG32[301]),
                     array('url' => 'plugins.php?mode=lstrepo',
                           'text' => $LANG32[302]),
                     array('url' => 'plugins.php?mode=updatelist',
-                          'text' => $LANG32[304]),
-                    array('url' => 'plugins.php?mode=addrepo',
-                          'text' => $LANG32[303])
+                          'text' => $LANG32[304])
                                                 );
 
     $retval .= COM_startBlock($LANG32[5], '',
@@ -590,6 +589,7 @@ function plugin_showrepos($message = '')
     }
 
     $token = SEC_createToken();
+
     $retval .= listrepositories($token);
 
     $retval .= COM_siteFooter();
@@ -626,16 +626,13 @@ function listsearchedplugins($token)
     $menu_arr = array (
                     array('url' => $_CONF['site_admin_url'],
                           'text' => $LANG_ADMIN['admin_home']),
-                    array('url' => 'plugins.php?mode=splugin',
-                          'text' => $LANG32[300]),
+                    
                     array('url' => 'plugins.php?mode=chkupdates',
                           'text' => $LANG32[301]),
                     array('url' => 'plugins.php?mode=lstrepo',
                           'text' => $LANG32[302]),
                     array('url' => 'plugins.php?mode=updatelist',
-                          'text' => $LANG32[304]),
-                    array('url' => 'plugins.php?mode=addrepo',
-                          'text' => $LANG32[303])
+                          'text' => $LANG32[304])
                                                 );
 
     $retval .= COM_startBlock($LANG32[5], '',
@@ -756,31 +753,28 @@ function listrepositories($token)
     $menu_arr = array (
                     array('url' => $_CONF['site_admin_url'],
                           'text' => $LANG_ADMIN['admin_home']),
-                    array('url' => 'plugins.php?mode=splugin',
-                          'text' => $LANG32[300]),
+                    
                     array('url' => 'plugins.php?mode=chkupdates',
                           'text' => $LANG32[301]),
                     array('url' => 'plugins.php?mode=lstrepo',
                           'text' => $LANG32[302]),
                     array('url' => 'plugins.php?mode=updatelist',
-                          'text' => $LANG32[304]),
-                    array('url' => 'plugins.php?mode=addrepo',
-                          'text' => $LANG32[303])
+                          'text' => $LANG32[304])
                                                 );
 
-    $retval .= COM_startBlock($LANG32[5], '',
+    $retval .= COM_startBlock($LANG32[348], '',
                               COM_getBlockTemplate('_admin_block', 'header'));
 
     $retval .= ADMIN_createMenu(
         $menu_arr,
-        $LANG32[314],
+        $LANG32[349],
         $_CONF['layout_url'] . '/images/icons/plugins.' . $_IMAGE_TYPE
     );
-
+    
     $text_arr = array(
         'has_extras'   => false,
         'instructions' => $LANG32[314],
-        'form_url'     => $_CONF['site_admin_url'] . '/plugins.php'
+        'form_url'     => $_CONF['site_admin_url'] . '/plugins.php?cmd=lstrepo'
     );
         
     $query_arr = array(
@@ -798,6 +792,8 @@ function listrepositories($token)
                 $text_arr, $query_arr, $defsort_arr, '', $token, '', $form_arr, false);
                 
     $retval .= COM_endBlock(COM_getBlockTemplate('_admin_block', 'footer'));
+    
+    $retval .= show_add_repo();
 
     return $retval;
 }
@@ -893,6 +889,7 @@ function plugin_show_uploadform($token)
 
     return $retval;
 }
+
 
 /** 
 * Set uploaded plugin for install, and download to tmp directory, for unpacking purposes
@@ -1070,7 +1067,7 @@ function plugin_delete_repositorylisting($rname)
 
     $result = DB_query("DELETE FROM {$_TABLES['plugin_repository']} WHERE repository_url = '{$rname}';");
     
-    header("Location: plugins.php?msg=503");
+    header("Location: plugins.php?mode=lstrepo&msg=503");
 }
 
 /** 
@@ -1364,6 +1361,8 @@ function plugin_main($message = '')
             SEC_hasRights('plugin.install,plugin.upload')) {
         $retval .= plugin_show_uploadform($token);
     }
+    
+    $retval .= pluginsearch($token);
 
     $retval .= COM_siteFooter();
 
@@ -1811,7 +1810,7 @@ function show_add_repo()
     $plg_templates->set_file('add_repo', 'add_repo.thtml');
     $plg_templates->set_var('xhtml', XHTML);
     $plg_templates->set_var('site_admin_url', $_CONF['site_admin_url']);
-    $plg_templates->set_var('start_block_editor', COM_startBlock ($LANG32[13],
+    $plg_templates->set_var('start_block_editor', COM_startBlock ($LANG32[303],
             '', COM_getBlockTemplate ('_admin_block', 'header')));
     $plg_templates->set_var('lang_save', $LANG_ADMIN['save']);
     $plg_templates->set_var('lang_cancel', $LANG_ADMIN['cancel']);
@@ -1843,10 +1842,12 @@ function add_repository()
     
     // Cannot be false, must be valid page http://geeklog.tim/geeklog-1.6.0b1/public_html/repository/main
     if ( ($repository_url === NULL) or (ereg('^http://[a-zA-Z0-9\-\./_\-]+/repository/main', $repository_url) === FALSE) ) {
-        header("Location: plugins.php?msg=504");
+        header("Location: plugins.php?mode=lstrepo&msg=504");
         return;
     }
-    
+    /*
+    DEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUG
+    DEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGv
     // Now check validate repository
     include "HTTP/Request.php";
     $a = new HTTP_Request( $_CONF['geeklog_auth_service'] . 'repositorylisting/check_repository.php?repository='.rawurlencode($repository_url));
@@ -1857,7 +1858,7 @@ function add_repository()
 
    if ( ($header['content-length'] == 0) or ($a->getResponseCode() != 200)) {
         // Error, redirect
-        header("Location: plugins.php?msg=507");
+        header("Location: plugins.php?mode=lstrepo&msg=507");
         return;
     }
 
@@ -1865,21 +1866,21 @@ function add_repository()
     $status = unserialize($body);
     
     if ($status == FALSE) {
-        header("Location: plugins.php?msg=507");
+        header("Location: plugins.php?mode=lstrepo&msg=507");
         return;
     }
     else if ($status == 3) {
         $status = 3;
     }
     else if ($status == 1) {
-        header("Location: plugins.php?msg=506");
+        header("Location: plugins.php?mode=lstrepo&msg=506");
         return;
     }
     else
     {
         $status = 2;
     }
-    
+
     // Now lets see if the repository actually exists - if not, then we will notify the user that they may have made an error
     $a = new HTTP_Request($repository_url. '/status.rep');
     $a->sendRequest();
@@ -1892,11 +1893,14 @@ function add_repository()
         header("Location: plugins.php?tmsg=508&enable_spf=1&code={$code}&host=".rawurlencode($repository_url));
         return;    
     }
-    
+    */
+    $status = 2;
+    #DEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUG
+    #DEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUGDEBUG    
     // Add to database
     DB_query("INSERT INTO {$_TABLES['plugin_repository']}(repository_url, enabled, status) VALUES('{$repository_url}',1, {$status});");
     
-    header("Location: plugins.php?msg=505");
+    header("Location: plugins.php?mode=lstrepo&msg=505");
 }
 
 /**
@@ -1905,7 +1909,7 @@ function add_repository()
 */
 function show_available_updates($message=false)
 {
-    global $_CONF, $_TABLES, $LANG32, $LANG_ADMIN, $_IMAGE_TYPE, $REPOSITORY;
+    global $_CONF, $_TABLES, $LANG32, $LANG_ADMIN, $_IMAGE_TYPE, $REPOSITORY, $LANG09;
 
     require_once $_CONF['path_system'] . 'lib-admin.php';
     
@@ -1914,17 +1918,13 @@ function show_available_updates($message=false)
     
     $menu_arr = array (
                     array('url' => $_CONF['site_admin_url'],
-                          'text' => $LANG_ADMIN['admin_home']),
-                    array('url' => 'plugins.php?mode=splugin',
-                          'text' => $LANG32[300]),
+                          'text' => $LANG_ADMIN['admin_home']),                    
                     array('url' => 'plugins.php?mode=chkupdates',
                           'text' => $LANG32[301]),
                     array('url' => 'plugins.php?mode=lstrepo',
                           'text' => $LANG32[302]),
                     array('url' => 'plugins.php?mode=updatelist',
-                          'text' => $LANG32[304]),
-                    array('url' => 'plugins.php?mode=addrepo',
-                          'text' => $LANG32[303])
+                          'text' => $LANG32[304])
                                                 );
 
     $retval .= COM_startBlock($LANG32[329], '',
@@ -1936,22 +1936,17 @@ function show_available_updates($message=false)
 
     $retval .= ADMIN_createMenu(
         $menu_arr,
-        $LANG32[328],
+        $LANG32[350],
         $_CONF['layout_url'] . '/images/icons/plugins.' . $_IMAGE_TYPE
     );
     
     $form = '<input type="submit" name="install_updates" value="'. $LANG32[332] .'" />';
     
-    $admin_templates = new Template($_CONF['path_layout'] . 'admin/lists');
-    $admin_templates->set_file (array (
-        'list'   => 'list.thtml')
-    );
-    
     // Heading 
     $heading = '<th class="admin-list-headerfield">'. $LANG32[16] .'</th><th class="admin-list-headerfield">'. $LANG32[330] .'</th><th class="admin-list-headerfield">'. $LANG32[331] .'</th><th class="admin-list-headerfield">'. $LANG32[22] .'</th>';
     $data = '';
     $data_up = '';
-    $heading_up = '<th class="admin-list-headerfield">'. $LANG32[16] .'</th><th class="admin-list-headerfield">'. $LANG32[17] .'</th>';
+    $heading_up = '<th class="admin-list-headerfield">'. $LANG32[16] .'</th><th class="admin-list-headerfield">'. $LANG32[17] .'</th><th class="admin-list-headerfield">'. $LANG32[22] .'</th>';
     
     // And now check for updates
     $ap = array();
@@ -2041,10 +2036,16 @@ function show_available_updates($message=false)
         $array_of_uvalues = array();
         $array_of_up_gen = array(
             'upgrade_version' => false,
-            'upgrade_name' => false
+            'upgrade_name' => false,
+            'upgrade_id' => false,
+            'upgrade_pluginid' => false,
+            'upgrade_version2' => false,
+            'upgrade_autoinstall' => false,
+            'upgrade_ext' => false,
+            'upgrade_des' => false
         );
- 
-        while ($reader->read()) {
+
+         while ($reader->read()) {
               // Process 
               
               if($reader->name == "patch") {
@@ -2065,7 +2066,7 @@ function show_available_updates($message=false)
                       }
                       
                       if ($array_of_values['automatic_install'] == '1') {
-                          $fsn = "<input type='checkbox' name='{$array_of_values['id']}' value='{$repository},{$array_of_values['ext']},{$array_of_values['name']},{$array_of_values['update_number']}' checked='checked' />";
+                          $fsn = "<input type='checkbox' name='{$array_of_values['id']}' value='{$repository},{$array_of_values['ext']},{$array_of_values['name']},{$array_of_values['update_number']},update' checked='checked' />";
                           $psg = '';
                       }
                       else {
@@ -2077,7 +2078,7 @@ function show_available_updates($message=false)
                       $des = ($array_of_values['description'] == '') ? '('. $LANG32[345] .')' : $array_of_values['description'];
                       $data .= <<<MONSTERS
 <tr class="pluginRow{$css_style}" onmouseover="className='pluginRollOver';" onmouseout="className='pluginRow{$css_style}';">
-<td class="admin-list-field"><a href='javascript:void();' onclick='javascript:smart_toggle_datalink("DISPLAY_DATA{$array_of_values['plugin_id']}",event);'>{$array_of_values['name']}</a> <div class='plugin_data' style='display:none' id='DISPLAY_DATA{$array_of_values['plugin_id']}'><img style='float:right' onclick='javascriprt:hide_datalink("DISPLAY_DATA{$array_of_values['plugin_id']}");' alt='Close' src='{$_CONF['site_url']}/images/close.gif' /><b>{$array_of_values['name']}</b><br /><br />{$titular}<br /><br /><b>{$LANG32[340]}</b><br />{$des}<br /><br /><input type="button" name='bargain' onclick="window.location = '{$repository}/patches/get_patch.php?pid={$array_of_values['id']}';" value='{$LANG32[316]}' /></div> {$psg} {$st_repo}</td>      
+<td class="admin-list-field"><a href='javascript:void();' onclick='javascript:smart_toggle_datalink("DISPLAY_DATA{$array_of_values['id']}",event);'>{$array_of_values['name']}</a> <div class='plugin_data' style='display:none' id='DISPLAY_DATA{$array_of_values['id']}'><img style='float:right' onclick='javascriprt:hide_datalink("DISPLAY_DATA{$array_of_values['id']}");' alt='Close' src='{$_CONF['site_url']}/images/close.gif' /><b>{$array_of_values['name']}</b><br /><br />{$titular}<br /><br /><b>{$LANG32[340]}</b><br />{$des}<br /><br /><input type="button" name='bargain' onclick="window.location = '{$repository}/patches/get_patch.php?pid={$array_of_values['id']}';" value='{$LANG32[316]}' /></div> {$psg} {$st_repo}</td>      
 <td class="admin-list-field">{$array_of_values['version']}</td>
 <td class="admin-list-field">{$array_of_values['severity']}</td>
 <td class="admin-list-field">{$fsn}</td>
@@ -2102,11 +2103,21 @@ MONSTERS;
                       else {
                           $css_style2 = 1;
                       }
-                      
+
+                      if ($array_of_uvalues['upgrade_autoinstall'] == '1') {
+                          $fsn2 = "<input type='checkbox' name='{$array_of_uvalues['upgrade_id']}' value='{$repository},{$array_of_uvalues['upgrade_ext']},{$array_of_uvalues['upgrade_name']},{$array_of_uvalues['upgrade_version']},upgrade' checked='checked' />";
+                          $psg2 = '';
+                      }
+                      else {
+                          $fsn2 =  "<input type='button' name='postmsg' value='{$LANG32[316]}' />";                  
+                          $psg2 = $LANG32[335];
+                      }
+
                       $data_up .= <<<UPGRADE
 <tr class="pluginRow{$css_style2}" onmouseover="className='pluginRollOver';" onmouseout="className='pluginRow{$css_style2}';">
-<td class="admin-list-field">{$array_of_uvalues['upgrade_name']}</td>      
-<td class="admin-list-field">{$array_of_uvalues['upgrade_version']}</td>                       
+<td class="admin-list-field"><a href='javascript:void();' onclick='javascript:smart_toggle_datalink("DISPLAY_DATA2{$array_of_uvalues['upgrade_id']}",event);'>{$array_of_uvalues['upgrade_name']}</a> <div class='plugin_data' style='display:none' id='DISPLAY_DATA2{$array_of_uvalues['upgrade_id']}'><img style='float:right' onclick='javascriprt:hide_datalink("DISPLAY_DATA2{$array_of_uvalues['upgrade_id']}");' alt='Close' src='{$_CONF['site_url']}/images/close.gif' /><b>{$array_of_uvalues['upgrade_name']}</b><br /><br />{$titular}<br /><br /><b>{$LANG32[340]}</b><br />{$array_of_uvalues['upgrade_des']}<br /><br /><input type="button" name='bargain' onclick="window.location = '{$repository}/upgrades/get_upgrade.php?pid={$array_of_uvalues['upgrade_id']}';" value='{$LANG32[316]}' /></div> {$psg2} {$st_repo}</td>      
+<td class="admin-list-field">{$array_of_uvalues['upgrade_version2']} {$LANG09[21]} {$array_of_uvalues['upgrade_version']}</td>
+<td class="admin-list-field">{$fsn2}</td></tr>                  
 UPGRADE;
 
                       foreach ($array_of_up_gen as $key => $value) {
@@ -2134,8 +2145,14 @@ UPGRADE;
                           $array_of_key_gen[$name] = true;
                       }      
                       break;
-                  case "upgrade_version":
+                  case "upgrade_id":
+                  case "upgrade_pluginid":
+                  case "upgrade_version2":
                   case "upgrade_name":
+                  case "upgrade_version":
+                  case "upgrade_autoinstall":
+                  case "upgrade_ext":
+                  case "upgrade_des":
                       $name = $reader->name;
                       if ($array_of_up_gen[$name] == false) {
                           $reader->read();
@@ -2154,40 +2171,41 @@ UPGRADE;
 
     }
    
-    // Are there any updates?
+   $msg = '<br /><div class="alignleft"><div class="block-divider"></div><div class="aligncenter"><div class="block-divider"></div></div>' . $LANG32[328] . '<br /><br />';
+    // No updates, no heading
     if ($data == "") {
-        $data = '<br />'.$LANG32[333].'<br /><br />';
-        $form = '';//<input type="submit" name="install_updates" disabled="disabled" value="'. $LANG32[332] .'" />';
+        $data = '';
         $heading = '';
+        $rbb = '';
+        $msg = '';
     }
     
+    $msg2 = '<br /><div class="block-divider"></div></div><div class="alignleft"><div class="block-divider"></div>'.$LANG32[334].'<br /><br />';
+    // No upgrades, no heading
     if ($data_up == "") {
-        $heading_up = '';         
+        $heading_up = '';
+        $msg2 = '';
     }
-    else
-    {
-        // Open up new template section for the upgrades
-        $admin_templates2 = new Template($_CONF['path_layout'] . 'admin/lists');
-        $admin_templates2->set_file (array (
-            'list'   => 'list.thtml')
-        );
-        $admin_templates2->set_var( 'header_row', $heading_up);
-        $admin_templates2->set_var( 'formfields_top', $LANG32[334] . '<br /><br />');
-        $admin_templates2->set_var( 'show_deleteimage', 'display:none;');
-        $admin_templates2->set_var( 'item_row', $data_up);
-        $admin_templates2->parse('output', 'list');
-        
-        $data_up = $admin_templates2->finish($admin_templates2->get_var('output'));
+    
+    // Should we display that there are none of either available?
+    if ( ($data == '') and ($data_up == '')) {
+        $data = '<br />'.$LANG32[333].'<br /><br />';
+        $form = '';
     }
-   
+
+    $admin_templates = new Template($_CONF['path_layout'] . 'admin/lists');
+    $admin_templates->set_file (array (
+        'list'   => 'list2.thtml')
+    );
     # insert std. values into the template
-    $admin_templates->set_var( 'xhtml', XHTML );
     $admin_templates->set_var( 'header_row', $heading);
-    $admin_templates->set_var( 'search_menu', $data_up);
+    $admin_templates->set_var( 'header_row2', $heading_up);
+    $admin_templates->set_var( 'install_button', $form);
     $admin_templates->set_var( 'form_url', 'plugins.php');
-    $admin_templates->set_var( 'formfields_top', $form);
-    $admin_templates->set_var( 'show_deleteimage', 'display:none;');
+    $admin_templates->set_var( 'msg1', $msg);
+    $admin_templates->set_var( 'msg2', $msg2);    
     $admin_templates->set_var( 'item_row', $data);
+    $admin_templates->set_var( 'item_row2', $data_up);
     $admin_templates->parse('output', 'list');
     $retval .= $admin_templates->finish($admin_templates->get_var('output'));
     return $retval;
@@ -2243,7 +2261,14 @@ function start_update_process()
         // The way the POST values are set up is that the names are the patch_id.. Since checkboxes are only returned as POST values if they are not checked, then we are good to go as all coming here are checked.
         $id = (int)$name;
         $arr = explode(",", $value); // The value is : 
-        $get_path = $arr[0] . '/patches/get_patch.php?pid='.$id;
+        // Get GETPATH, depending on whether update or upgrade
+        if ($arr[4] == 'update') {
+            $get_path = $arr[0] . '/patches/get_patch.php?pid='.$id;
+        }
+        else {
+            $get_path = $arr[0] . '/upgrades/get_upgrade.php?pid='.$id;
+        }
+        
         $local =  $_CONF['path_data'] . 'patch_pid' . $id . COM_applyFilter($arr[1]);
         // Lets make a send request to the update page
         $fresult = download_file($get_path, $local);
@@ -2289,11 +2314,11 @@ function start_update_process()
         // Include the class file that should exist, but first we need to make sure that the class even exists
         if ( (!class_exists('UpdatePlugin')) or (!(method_exists('UpdatePlugin', 'init')))) {
             PLData::failedupdate($arr[2], 101);
-            echo UpdatePlugin instanceof PluginUpdateInterface; exit;
             continue;         
         }
         
         // Now we need to get the list of tables this plugin requires, the plugin name, and the SQL to perform
+        $update->set_var($arr[4],'type');
         $update->set_var(UpdatePlugin::$_SQL_PTABLES, 'tbl');
         $update->set_var(UpdatePlugin::$_SQL_DATA, 'sql');
         $update->set_var(UpdatePlugin::$PLUGIN_NAME, 'pn');
@@ -2424,11 +2449,6 @@ if (($mode == $LANG_ADMIN['delete']) && !empty($LANG_ADMIN['delete'])) {
     $str = rawurlencode($str);
     // Say msg
     $display = COM_refresh($_CONF['site_admin_url'] . '/plugins.php?tmsg=500&enable_spf=1&str='.$str);
-    
-} elseif ($mode == 'splugin') {
-    $display .= COM_siteHeader('menu', $LANG32[304]);
-    $display .= pluginsearch();
-    $display .= COM_siteFooter();
 
 } elseif ($mode == 'lstrepo') {
     $display .= COM_siteHeader('menu', $LANG32[304]);
@@ -2472,11 +2492,10 @@ if (($mode == $LANG_ADMIN['delete']) && !empty($LANG_ADMIN['delete'])) {
         SEC_hasRights('plugin.install,plugin.upload')) { 
     $display .= plugin_upload();
 
-} elseif (isset($_POST['search'])) {
-    $display .= plugin_showresults();
-    
 } elseif (isset($_POST['install_updates'])) {
     $display .= start_update_process();
+} elseif (isset($_POST['search'])) {
+    $display .= plugin_showresults();
     
 } elseif ( (isset($_GET['cmd'])) and ($_GET['cmd'] == 'install') and SEC_hasRights('plugin.install,plugin.upload')) {
     
