@@ -1485,32 +1485,32 @@ $_SQL[] = "INSERT INTO dateCommandCrossReference (mysqlCommand, sqlServerCommand
 
 // Repository Manager Client
 $_SQL[] = "
-CREATE TABLE [dbo]. [{$_TABLES['plugin_repository']}] (
-  [repository_url] [varchar] (255) default NULL,
-  [enabled] [tinyint] (4) default NULL,
-  [status] tinyint default 0
+CREATE TABLE [{$_TABLES['plugin_repository']}] (
+    [repository_url] [varchar] (255) DEFAULT (null),
+    [enabled] [tinyint]   DEFAULT (null),
+    [status] [tinyint]   DEFAULT (0)
 ) ON [PRIMARY]
 ";
 
 
 $_SQL[] = "
-CREATE TABLE [dbo]. [{$_TABLES['plugin_repository_list']}] (
-  [plugin_id] [int] (11) default NULL,
-  [name] [varchar] (255) default NULL,
-  [repository_name] [varchar] (255) default NULL,
-  [version] [varchar] (255) default NULL,
-  [db] [int] (4) default NULL,
-  [dependencies] text,
-  [soft_dep] text,
-  [short_des] text,
-  [credits] text,
-  [vett] [int] (11) default NULL,
-  [downloads] [int] (11) default NULL,
-  [install] [int] (4) default NULL,
-  [state] [varchar] (255) default NULL,
-  [ext] [varchar] (100) default NULL,
-  [fname] [varchar] (255) default NULL,
-) ON PRIMARY
+CREATE TABLE [{$_TABLES['plugin_repository_list']}] (
+    [plugin_id] [int] NOT NULL ,
+    [name] [varchar] (255)  NULL ,
+    [repository_name] [varchar] (255)  NULL ,
+    [version] [varchar] (255)  NULL ,
+    [db] [int] NULL ,
+    [dependencies] [text]  NULL ,
+    [soft_dep] [text]  NULL ,
+    [short_des] [text]  NULL ,
+    [credits] [text]  NULL ,
+    [vett] [int] NULL ,
+    [downloads] [int] NULL ,
+    [install] [int] NULL ,
+    [state] [varchar] (255)  NULL ,
+    [ext] [varchar] (100)  NULL ,
+    [fname] [varchar] (255)  NULL
+) ON [PRIMARY]
 ";
 
 $_SQL[] = "INSERT INTO {$_TABLES['plugin_repository']} (repository_url, enabled, status) VALUES 
