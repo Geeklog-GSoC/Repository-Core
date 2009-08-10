@@ -454,9 +454,7 @@ function pluginsearch($token=null)
     $d2 = "";
     
     while ( ($result2 = DB_fetchArray($result)) !== FALSE) {
-        $d2 .= <<<EOO
-<option value="{$result2['repository_url']}">{$result2['repository_url']}</option>
-EOO;
+        $d2 .= "<option value=\"{$result2['repository_url']}\">{$result2['repository_url']}</option>";
     }
     
     $plg_templates->set_var('value_0', $d2);
@@ -1746,9 +1744,8 @@ function updaterepositorylist()
                       $plugin = false; 
                       
                       // Insert into the repository listing database the values
-                      $query = <<<OFF
-INSERT INTO {$_TABLES['plugin_repository_list']} (plugin_id, name, repository_name, version, db, dependencies, soft_dep, short_des, credits, vett, downloads, install, state, ext, fname) VALUES('{$array_of_values['id']}','{$array_of_values['name']}', '{$result2['repository_url']}', '{$array_of_values['version']}','{$array_of_values['db']}','{$array_of_values['dependencies']}','{$array_of_values['soft_dep']}','{$array_of_values['short_des']}','{$array_of_values['credits']}','{$array_of_values['vett']}','{$array_of_values['downloads']}','{$array_of_values['install']}','{$array_of_values['state']}','{$array_of_values['ext']}', '{$array_of_values['fname']}');
-OFF;
+                      $query = "INSERT INTO {$_TABLES['plugin_repository_list']} (plugin_id, name, repository_name, version, db, dependencies, soft_dep, short_des, credits, vett, downloads, install, state, ext, fname) VALUES('{$array_of_values['id']}','{$array_of_values['name']}', '{$result2['repository_url']}', '{$array_of_values['version']}','{$array_of_values['db']}','{$array_of_values['dependencies']}','{$array_of_values['soft_dep']}','{$array_of_values['short_des']}','{$array_of_values['credits']}','{$array_of_values['vett']}','{$array_of_values['downloads']}','{$array_of_values['install']}','{$array_of_values['state']}','{$array_of_values['ext']}', '{$array_of_values['fname']}');";
+                      
                       // Insert into database
                       DB_query($query);
                       
