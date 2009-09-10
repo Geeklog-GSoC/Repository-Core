@@ -389,7 +389,7 @@ if ($error) {
   echo '<p><a href="migrate.php">' . $LANG_BIGDUMP[30] . '</a> ' . $LANG_BIGDUMP[31] . '</p>' . LB;
 }
 
-if ($dbconnection) mysql_close();
+if ($dbconnection) mysql_close($dbconnection);
 if ($file && !$gzipmode) fclose($file);
 else if ($file && $gzipmode) gzclose($file);
 
