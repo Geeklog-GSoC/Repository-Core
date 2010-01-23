@@ -426,10 +426,9 @@ function do_uninstall($pi_name)
 * Bring up plugin search 
 *
 */
-
 function pluginsearch($token=null)
 {
-    global $_CONF, $_TABLES, $_USER, $LANG32, $LANG_ADMIN;
+    global $_CONF, $_TABLES, $_USER, $LANG32, $LANG_ADMIN, $_IMAGE_TYPE;
 
     $retval = '';
     
@@ -451,7 +450,7 @@ function pluginsearch($token=null)
     $plg_templates->set_var('lang_320', $LANG32[320]);
     $plg_templates->set_var('CSRF_TOKEN', CSRF_TOKEN);
     $plg_templates->set_var('TOKENVAL', $token);
-    
+
     // Get DB info about current repositories
     $result = DB_query("SELECT * FROM {$_TABLES['plugin_repository']};");
     $d2 = "";
@@ -462,14 +461,18 @@ function pluginsearch($token=null)
     
     $plg_templates->set_var('value_0', $d2);
     
-    $plg_templates->set_var('pi_icon', PLG_getIcon($pi_name));
+    /**
+    * @todo Not sure where $pi_name comes from - use default icon for now
+    * $plg_templates->set_var('pi_icon', PLG_getIcon($pi_name));
+    */
+    $plg_templates->set_var('pi_icon',
+            $_CONF['layout_url'] . '/images/icons/plugins.' . $_IMAGE_TYPE);
     $plg_templates->set_var('end_block',
             COM_endBlock (COM_getBlockTemplate ('_admin_block', 'footer')));
 
     $retval .= $plg_templates->finish($plg_templates->parse('output', 'search'));
 
     return $retval;
-
 }
 
 /**
@@ -1811,8 +1814,9 @@ function updaterepositorylist()
 */
 function show_add_repo()
 {
-    // Declare Variables
-    global $_CONF, $LANG_ADMIN, $LANG32;
+    global $_CONF, $LANG_ADMIN, $LANG32, $_IMAGE_TYPE;
+
+    $retval = '';
     
     // Templates
     $plg_templates = new Template($_CONF['path_layout'] . 'admin/plugins');
@@ -1823,18 +1827,21 @@ function show_add_repo()
             '', COM_getBlockTemplate ('_admin_block', 'header')));
     $plg_templates->set_var('lang_save', $LANG_ADMIN['save']);
     $plg_templates->set_var('lang_cancel', $LANG_ADMIN['cancel']);
-    $plg_templates->set_var('pi_icon', PLG_getIcon($pi_name));
+    /**
+    * @todo Not sure where $pi_name comes from - use default icon for now
+    * $plg_templates->set_var('pi_icon', PLG_getIcon($pi_name));
+    */
+    $plg_templates->set_var('pi_icon',
+            $_CONF['layout_url'] . '/images/icons/plugins.' . $_IMAGE_TYPE);
     $plg_templates->set_var('lang_repourl', $LANG32[319]);
     $plg_templates->set_var('gltoken', SEC_createToken());
     $plg_templates->set_var('gltoken_name', CSRF_TOKEN);
     $plg_templates->set_var('end_block',
-            COM_endBlock (COM_getBlockTemplate ('_admin_block', 'footer')));
+            COM_endBlock(COM_getBlockTemplate('_admin_block', 'footer')));
 
     $retval .= $plg_templates->finish($plg_templates->parse('output', 'add_repo'));
 
     return $retval;
-
-    
 }
 
 /**
