@@ -126,7 +126,7 @@ function plugineditor($pi_name, $confirmed = 0)
     }
     $plugin_code_version = PLG_chkVersion($pi_name);
     if (empty($plugin_code_version)) {
-        $code_version = 'N/A';
+        $code_version = $LANG_ADMIN['na'];
     } else {
         $code_version = $plugin_code_version;
     }
@@ -360,26 +360,29 @@ function do_update($pi_name)
 
     $retval = '';
 
-    if (strlen($pi_name) == 0) {
-        $retval .= COM_showMessageText($LANG32[12], $LANG32[13]);
-
-        return $retval;
-    }
-
-    $result = PLG_upgrade($pi_name);
-    if ($result > 0 ) {
-        if ($result === TRUE) { // Catch returns that are just true/false
-            PLG_pluginStateChange($pi_name, 'upgraded');
-            $retval .= COM_refresh($_CONF['site_admin_url']
-                    . '/plugins.php?msg=60');
-        } else {  // Plugin returned a message number
-            $retval = COM_refresh($_CONF['site_admin_url']
-                    . '/plugins.php?msg=' . $result . '&amp;plugin='
-                    . $pi_name);
+    if (! empty($pi_name)) {
+        $result = PLG_upgrade($pi_name);
+        if ($result > 0) {
+            if ($result === TRUE) { // Catch returns that are just true/false
+                PLG_pluginStateChange($pi_name, 'upgraded');
+                $retval = COM_refresh($_CONF['site_admin_url']
+                        . '/plugins.php?msg=60');
+            } else {    // Plugin returned a message number
+                $retval = COM_refresh($_CONF['site_admin_url']
+                        . '/plugins.php?msg=' . $result . '&amp;plugin='
+                        . $pi_name);
+            }
+            return $retval;
+        } else {  // Plugin function returned a false
+            $retval = COM_showMessage(95);
         }
-    } else {  // Plugin function returned a false
-        $retval .= COM_showMessage(95);
+    } else { // no plugin name given
+        $retval = COM_showMessageText($LANG32[12], $LANG32[13]);
     }
+
+    $retval = COM_siteHeader('menu', $LANG32[13])
+            . $retval
+            . COM_siteFooter();
 
     return $retval;
 }
@@ -394,7 +397,7 @@ function do_update($pi_name)
 */
 function do_uninstall($pi_name)
 {
-    global $_CONF;
+    global $_CONF, $_TABLES, $_DB_table_prefix;
 
     $retval = false;
 
@@ -804,7 +807,7 @@ function listrepositories($token)
  *                          returns false if no error occured
  *
  */
-function plugin_getUploadError($mFile) 
+function plugin_getUploadError($mFile)
 {
     global $LANG32;
 
@@ -827,7 +830,7 @@ function plugin_getUploadError($mFile)
         $retval = false;
 
     }
-    
+
     return $retval;
 }
 
@@ -847,9 +850,9 @@ function plugin_upload_enabled()
     // If 'file_uploads' is enabled in php.ini
     // and the plugin directories are writable by the web server.
     $upload_enabled = (ini_get('file_uploads')
-                        && is_writable($_CONF['path'] . 'plugins/') 
+                        && is_writable($_CONF['path'] . 'plugins/')
                         && is_writable($_CONF['path_html'])
-                        && is_writable($path_admin . 'plugins/')) 
+                        && is_writable($path_admin . 'plugins/'))
                             ? true
                             : false;
 
@@ -1190,7 +1193,7 @@ function plugin_upload($fpath = null)
                 }
             }
 
-            /** 
+            /**
              * Install the plugin
              * This doesn't work if the public_html & public_html/admin/plugins directories aren't 777
              */
@@ -1213,11 +1216,11 @@ function plugin_upload($fpath = null)
             /**
              * One time I wanted to install a muffler on my car and
              * needed to match up the outside diameter of the car's
-             * exhaust pipe to the inside diameter of the muffler. 
+             * exhaust pipe to the inside diameter of the muffler.
              * Unfortunately, when I went to the auto parts store they
              * didn't have a coupling adapter that would perfectly
              * match the two pipes, only a bunch of smaller adapters.
-             * I ended up using about 4 small adapters to step down 
+             * I ended up using about 4 small adapters to step down
              * one size at a time to the size of the muffler's input.
              *
              * It's kind of like this regular expression:
@@ -1562,20 +1565,21 @@ function plugin_do_autoinstall($plugin, $inst_parms, $verbose = true)
         }
     }
 
-    // Add plugin's Admin group to the Root user group 
+    // Add plugin's Admin group to the Root user group
     // (assumes that the Root group's ID is always 1)
-    if ($admin_group_id > 1) {
+    if (count($groups) > 0) {
         if ($verbose) {
             COM_errorLog("Attempting to give all users in the Root group access to the '$plugin' Admin group", 1);
         }
 
-        DB_query("INSERT INTO {$_TABLES['group_assignments']} VALUES "
-                 . "($admin_group_id, NULL, 1)");
-        if (DB_error()) {
-            COM_errorLog('Error adding plugin admin group to Root group', 1);
-            PLG_uninstall($plugin);
-
-            return false;
+        foreach($groups as $key=>$value){
+            DB_query("INSERT INTO {$_TABLES['group_assignments']} VALUES "
+             . "($value, NULL, 1)");
+            if (DB_error()) {
+                COM_errorLog('Error adding plugin admin group to Root group', 1);
+                PLG_uninstall($plugin);
+                return false;
+            }
         }
     }
 
@@ -1590,7 +1594,7 @@ function plugin_do_autoinstall($plugin, $inst_parms, $verbose = true)
             if (DB_error()) {
                 COM_errorLog('Error adding plugin default data', 1);
                 PLG_uninstall($plugin);
-            
+
                 return false;
             }
         }
@@ -1605,6 +1609,10 @@ function plugin_do_autoinstall($plugin, $inst_parms, $verbose = true)
 
             return false;
         }
+
+        require_once $_CONF['path'] . 'system/classes/config.class.php';
+        $config =& config::get_instance();
+        $config->initConfig(); // force re-reading, including new plugin conf
     }
 
     // Finally, register the plugin with Geeklog
@@ -1633,12 +1641,16 @@ function plugin_do_autoinstall($plugin, $inst_parms, $verbose = true)
             PLG_uninstall($plugin);
 
             return false;
-        }   
+        }
     }
 
     if ($verbose) {
         COM_errorLog("Successfully installed the '$plugin' plugin!", 1);
     }
+
+    // load plugin here already, for any plugins wanting to act on
+    // PLG_pluginStateChange($plugin, 'installed') when we return from here
+    require_once $_CONF['path'] . 'plugins/' . $plugin . '/functions.inc';
 
     return true;
 }
@@ -2411,17 +2423,23 @@ function start_update_process()
 
 // MAIN
 $display = '';
-if (isset($_POST['pluginenabler']) && SEC_checkToken()) {
-    if (isset($_POST['enabledplugins'])) {
-        changePluginStatus($_POST['enabledplugins']);
-    } else {
-        changePluginStatus(array());
-    }
+if (isset($_POST['pluginenabler'])) { // JavaScript-triggered POST request
+    if (isset($_POST['updatethisplugin'])) {
+        // translate into a standard update request (see below)
+        $_POST['mode'] = $LANG32[34];
+        $_POST['pi_name'] = $_POST['updatethisplugin'];
+    } elseif (SEC_checkToken()) {
+        if (isset($_POST['enabledplugins'])) {
+            changePluginStatus($_POST['enabledplugins']);
+        } else {
+            changePluginStatus(array());
+        }
 
-    // force a refresh so that the information of the plugin that was just
-    // enabled / disabled (menu entries, etc.) is displayed properly
-    header('Location: ' . $_CONF['site_admin_url'] . '/plugins.php');
-    exit;
+        // force a refresh so that the information of the plugin that was just
+        // enabled / disabled (menu entries, etc.) is displayed properly
+        header('Location: ' . $_CONF['site_admin_url'] . '/plugins.php');
+        exit;
+    }
 }
 
 $mode = '';
@@ -2458,11 +2476,9 @@ if (($mode == $LANG_ADMIN['delete']) && !empty($LANG_ADMIN['delete'])) {
 
 } elseif ((($mode == $LANG32[34]) && !empty($LANG32[34])) && SEC_checkToken()) { // update
     $pi_name = COM_applyFilter($_POST['pi_name']);
-    $display .= COM_siteHeader('menu', $LANG32[13]);
     $display .= do_update($pi_name);
-    $display .= COM_siteFooter();
-    
-} elseif ( ( isset($_POST['add_repo'])) && SEC_checkToken()) { // update
+
+} elseif ( ( isset($_POST['add_repo'])) && SEC_checkToken()) {
     $display .= COM_siteHeader('menu', $LANG32[13]);
     $display .= add_repository();
     $display .= COM_siteFooter();
@@ -2533,7 +2549,7 @@ if (($mode == $LANG_ADMIN['delete']) && !empty($LANG_ADMIN['delete'])) {
     }
 
 } elseif (isset($_FILES['plugin']) && SEC_checkToken() &&
-        SEC_hasRights('plugin.install,plugin.upload')) { 
+        SEC_hasRights('plugin.install,plugin.upload')) {
     $display .= plugin_upload();
 
 } elseif (isset($_POST['install_updates'])) {

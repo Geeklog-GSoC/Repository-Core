@@ -8,7 +8,7 @@
 // |                                                                           |
 // | Geeklog system statistics page.                                           |
 // +---------------------------------------------------------------------------+
-// | Copyright (C) 2000-2009 by the following authors:                         |
+// | Copyright (C) 2000-2010 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Mark Limburg      - mlimburg AT users DOT sourceforge DOT net    |
@@ -37,23 +37,10 @@ require_once $_CONF['path_system'] . 'lib-admin.php';
 
 $display = '';
 
-if (empty ($_USER['username']) &&
+if (COM_isAnonUser() &&
     (($_CONF['loginrequired'] == 1) || ($_CONF['statsloginrequired'] == 1))) {
-    $display = COM_siteHeader ('menu', $LANG_LOGIN[1]);
-    $display .= COM_startBlock ($LANG_LOGIN[1], '',
-                                COM_getBlockTemplate ('_msg_block', 'header'));
-    $login = new Template($_CONF['path_layout'] . 'submit');
-    $login->set_file (array ('login'=>'submitloginrequired.thtml'));
-    $login->set_var ( 'xhtml', XHTML );
-    $login->set_var ('site_url', $_CONF['site_url']);
-    $login->set_var ('site_admin_url', $_CONF['site_admin_url']);
-    $login->set_var ('layout_url', $_CONF['layout_url']);
-    $login->set_var ('login_message', $LANG_LOGIN[2]);
-    $login->set_var ('lang_login', $LANG_LOGIN[3]);
-    $login->set_var ('lang_newuser', $LANG_LOGIN[4]);
-    $login->parse ('output', 'login');
-    $display .= $login->finish ($login->get_var('output'));
-    $display .= COM_endBlock (COM_getBlockTemplate ('_msg_block', 'footer'));
+    $display = COM_siteHeader('menu', $LANG10[1]);
+    $display .= SEC_loginRequiredForm();
     $display .= COM_siteFooter();
     COM_output($display);
     exit;
@@ -61,7 +48,7 @@ if (empty ($_USER['username']) &&
 
 // MAIN
 
-$display .= COM_siteHeader ('menu', $LANG10[1]);
+$display .= COM_siteHeader('menu', $LANG10[1]);
 
 // Overall Site Statistics
 
