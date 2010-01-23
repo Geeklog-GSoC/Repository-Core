@@ -1,4 +1,4 @@
-                           
+
                             <div class="aligncenter">
                                 <div class="block-divider"></div>
                             </div><div class="block-box">
@@ -46,6 +46,6 @@
                                     </tr>
 
                                    </table>
-                                   <input type="hidden" name="{CSRF_TOKEN}" value="{TOKENVAL}" />
+                                   <input type="hidden" name="{gltoken_name}" value="{gltoken}"{xhtml}>
                             </form>
 </div>                            {end_block}

@@ -8,7 +8,7 @@
 // |                                                                           |
 // | Geeklog plugin administration page.                                       |
 // +---------------------------------------------------------------------------+
-// | Copyright (C) 2000-2009 by the following authors:                         |
+// | Copyright (C) 2000-2010 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Mark Limburg      - mlimburg AT users DOT sourceforge DOT net    |
@@ -448,8 +448,8 @@ function pluginsearch($token=null)
     $plg_templates->set_var('lang_309', $LANG32[309]);
     $plg_templates->set_var('lang_310', $LANG32[310]);
     $plg_templates->set_var('lang_320', $LANG32[320]);
-    $plg_templates->set_var('CSRF_TOKEN', CSRF_TOKEN);
-    $plg_templates->set_var('TOKENVAL', $token);
+    $plg_templates->set_var('gltoken', $token);
+    $plg_templates->set_var('gltoken_name', CSRF_TOKEN);
 
     // Get DB info about current repositories
     $result = DB_query("SELECT * FROM {$_TABLES['plugin_repository']};");
@@ -1822,7 +1822,9 @@ function show_add_repo()
     $plg_templates = new Template($_CONF['path_layout'] . 'admin/plugins');
     $plg_templates->set_file('add_repo', 'add_repo.thtml');
     $plg_templates->set_var('xhtml', XHTML);
+    $plg_templates->set_var('site_url', $_CONF['site_url']);
     $plg_templates->set_var('site_admin_url', $_CONF['site_admin_url']);
+    $plg_templates->set_var('layout_url', $_CONF['layout_url']);
     $plg_templates->set_var('start_block_editor', COM_startBlock ($LANG32[303],
             '', COM_getBlockTemplate ('_admin_block', 'header')));
     $plg_templates->set_var('lang_save', $LANG_ADMIN['save']);
@@ -2213,16 +2215,21 @@ UPGRADE;
         'list'   => 'list2.thtml')
     );
     # insert std. values into the template
-    $admin_templates->set_var( 'header_row', $heading);
-    $admin_templates->set_var( 'header_row2', $heading_up);
-    $admin_templates->set_var( 'install_button', $form);
-    $admin_templates->set_var( 'form_url', 'plugins.php');
-    $admin_templates->set_var( 'msg1', $msg);
-    $admin_templates->set_var( 'msg2', $msg2);    
-    $admin_templates->set_var( 'item_row', $data);
-    $admin_templates->set_var( 'item_row2', $data_up);
+    $admin_templates->set_var('xhtml', XHTML);
+    $admin_templates->set_var('site_url', $_CONF['site_url']);
+    $admin_templates->set_var('site_admin_url', $_CONF['site_admin_url']);
+    $admin_templates->set_var('layout_url', $_CONF['layout_url']);
+    $admin_templates->set_var('header_row', $heading);
+    $admin_templates->set_var('header_row2', $heading_up);
+    $admin_templates->set_var('install_button', $form);
+    $admin_templates->set_var('form_url', 'plugins.php');
+    $admin_templates->set_var('msg1', $msg);
+    $admin_templates->set_var('msg2', $msg2);    
+    $admin_templates->set_var('item_row', $data);
+    $admin_templates->set_var('item_row2', $data_up);
     $admin_templates->parse('output', 'list');
     $retval .= $admin_templates->finish($admin_templates->get_var('output'));
+
     return $retval;
 }
 
