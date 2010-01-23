@@ -57,7 +57,10 @@ $LANG_POLLS = array(
     'upgrade1' => 'You installed a new version of the Polls plugin. Please',
     'upgrade2' => 'upgrade',
     'editinstructions' => 'Please fill in the Poll ID, at least one question and two answers for it.',
-    'start_poll' => 'Start Poll'
+    'pollclosed' => 'This poll is closed for voting.',
+    'pollhidden' => 'You have already voted. This poll results will only be shown when voting is closed.',
+    'start_poll' => 'Start Poll',
+    'deny_msg' => 'Access to this poll is denied.  Either the poll has been moved/removed or you do not have sufficient permissions.'
 );
 
 ###############################################################################
@@ -106,6 +109,7 @@ $LANG25 = array(
     40 => 'See all answers to this poll'
 );
 
+$PLG_polls_MESSAGE15 = 'Your comment has been submitted for review and will be published when approved by a moderator.';
 $PLG_polls_MESSAGE19 = '你的民意调查已顺利的存续了.';
 $PLG_polls_MESSAGE20 = 'Your poll has been successfully deleted.';
 
@@ -129,7 +133,8 @@ $LANG_confignames['polls'] = array(
     'polladdresstime' => 'Voter IP Address valid for',
     'delete_polls' => 'Delete Polls with Owner?',
     'aftersave' => 'After Saving Poll',
-    'default_permissions' => 'Poll Default Permissions'
+    'default_permissions' => 'Poll Default Permissions',
+    'meta_tags' => 'Enable Meta Tags'
 );
 
 $LANG_configsubgroups['polls'] = array(

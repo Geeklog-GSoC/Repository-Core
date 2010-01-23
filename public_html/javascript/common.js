@@ -1,11 +1,11 @@
 /* Reminder: always indent with 4 spaces (no tabs). */
 // +---------------------------------------------------------------------------+
-// | Geeklog 1.3                                                               |
+// | Geeklog 1.6                                                               |
 // +---------------------------------------------------------------------------+
 // | Commmon javascript functions                                              |
 // |                                                                           |
 // +---------------------------------------------------------------------------+
-// | Copyright (C) 2005,2006 by the following authors:                         |
+// | Copyright (C) 2005-2009 by the following authors:                         |
 // |                                                                           |
 // |            Blaine Lang - blaine@portalparts.com                           |
 // +---------------------------------------------------------------------------+
@@ -71,7 +71,7 @@
             elementToggle(id);
         }
     }
-    
+
 
 // Function to get the XY position of the screen
 IE_SUCKS = navigator.appName.indexOf("Microsoft");
@@ -188,3 +188,4 @@ function hide_maliciouswarning()
 {
     hide_datalink("MALICIOUS_PLUGIN_WARN");
 };
+

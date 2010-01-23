@@ -8,7 +8,7 @@
 // |                                                                           |
 // | This file provides helper functions for the automatic plugin install.     |
 // +---------------------------------------------------------------------------+
-// | Copyright (C) 2008-2009 by the following authors:                         |
+// | Copyright (C) 2008-2010 by the following authors:                         |
 // |                                                                           |
 // | Authors: Dirk Haun         - dirk AT haun-online DOT de                   |
 // +---------------------------------------------------------------------------+
@@ -46,13 +46,13 @@ function plugin_autoinstall_staticpages($pi_name)
 {
     $pi_name         = 'staticpages';
     $pi_display_name = 'Static Pages';
-    $pi_admin        = $pi_display_name . ' Admin';
+    $pi_admin        = 'Static Page Admin'; // "Page"(!), not "Pages"
 
     $info = array(
         'pi_name'         => $pi_name,
         'pi_display_name' => $pi_display_name,
-        'pi_version'      => '1.6.0',
-        'pi_gl_version'   => '1.6.0',
+        'pi_version'      => '1.6.2',
+        'pi_gl_version'   => '1.6.1',
         'pi_homepage'     => 'http://www.geeklog.net/'
     );
 
@@ -117,6 +117,15 @@ function plugin_load_configuration_staticpages($pi_name)
 */
 function plugin_compatible_with_this_version_staticpages($pi_name)
 {
+    global $_CONF, $_DB_dbms;
+
+    // check if we support the DBMS the site is running on
+    $dbFile = $_CONF['path'] . 'plugins/' . $pi_name . '/sql/'
+            . $_DB_dbms . '_install.php';
+    if (! file_exists($dbFile)) {
+        return false;
+    }
+
     if (! function_exists('SEC_getGroupDropdown')) {
         return false;
     }
@@ -130,6 +139,18 @@ function plugin_compatible_with_this_version_staticpages($pi_name)
     }
 
     if (! function_exists('COM_setLangIdAndAttribute')) {
+        return false;
+    }
+
+    if (! isset($_CONF['meta_tags'])) {
+        return false;
+    }
+
+    if (! function_exists('SEC_getTokenExpiryNotice')) {
+        return false;
+    }
+
+    if (! function_exists('SEC_loginRequiredForm')) {
         return false;
     }
 

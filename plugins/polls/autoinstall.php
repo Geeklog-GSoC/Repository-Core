@@ -8,7 +8,7 @@
 // |                                                                           |
 // | This file provides helper functions for the automatic plugin install.     |
 // +---------------------------------------------------------------------------+
-// | Copyright (C) 2008-2009 by the following authors:                         |
+// | Copyright (C) 2008-2010 by the following authors:                         |
 // |                                                                           |
 // | Authors: Dirk Haun         - dirk AT haun-online DOT de                   |
 // +---------------------------------------------------------------------------+
@@ -51,8 +51,8 @@ function plugin_autoinstall_polls($pi_name)
     $info = array(
         'pi_name'         => $pi_name,
         'pi_display_name' => $pi_display_name,
-        'pi_version'      => '2.1.0',
-        'pi_gl_version'   => '1.6.0',
+        'pi_version'      => '2.1.2',
+        'pi_gl_version'   => '1.6.1',
         'pi_homepage'     => 'http://www.geeklog.net/'
     );
 
@@ -115,6 +115,15 @@ function plugin_load_configuration_polls($pi_name)
 */
 function plugin_compatible_with_this_version_polls($pi_name)
 {
+    global $_CONF, $_DB_dbms;
+
+    // check if we support the DBMS the site is running on
+    $dbFile = $_CONF['path'] . 'plugins/' . $pi_name . '/sql/'
+            . $_DB_dbms . '_install.php';
+    if (! file_exists($dbFile)) {
+        return false;
+    }
+
     if (function_exists('COM_showPoll') || function_exists('COM_pollVote')) {
         // if these functions exist, then someone's trying to install the
         // plugin on Geeklog 1.3.11 or older - sorry, but that won't work
@@ -130,6 +139,18 @@ function plugin_compatible_with_this_version_polls($pi_name)
     }
 
     if (! function_exists('COM_showMessageText')) {
+        return false;
+    }
+
+    if (! isset($_CONF['meta_tags'])) {
+        return false;
+    }
+
+    if (! function_exists('SEC_getTokenExpiryNotice')) {
+        return false;
+    }
+
+    if (! function_exists('SEC_loginRequiredForm')) {
         return false;
     }
 

@@ -10,7 +10,7 @@
 // | API method and 2) implements all the common code needed by the Links      |
 // | Plugins' PHP files.                                                       |
 // +---------------------------------------------------------------------------+
-// | Copyright (C) 2000-2009 by the following authors:                         |
+// | Copyright (C) 2000-2010 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs         - tony AT tonybibbs DOT com                   |
 // |          Mark Limburg       - mlimburg AT users.sourceforge DOT net       |
@@ -84,10 +84,9 @@ if (!isset($_LI_CONF['linksloginrequired'])) {
 */
 function plugin_getmenuitems_links()
 {
-    global $_CONF, $_USER, $_LI_CONF, $LANG_LINKS;
+    global $_CONF, $_LI_CONF, $LANG_LINKS;
 
-    $anon = (empty ($_USER['uid']) || ($_USER['uid'] <= 1)) ? true : false;
-    if (($_LI_CONF['hidelinksmenu'] == 1) || ($anon &&
+    if (($_LI_CONF['hidelinksmenu'] == 1) || (COM_isAnonUser() &&
                 ($_CONF['loginrequired'] || $_LI_CONF['linksloginrequired']))) {
         return false;
     }
@@ -100,17 +99,17 @@ function plugin_getmenuitems_links()
 /**
 * Return headlines for New Links section in the What's New block, if enabled
 *
-* @return   mixed       array(headline, byline), or boolean false is disabled
+* @return   mixed       array(headline, byline), or boolean false if disabled
 *
 */
 function plugin_whatsnewsupported_links()
 {
-    global $_TABLES, $_LI_CONF, $LANG_LINKS, $LANG_WHATSNEW;
+    global $_LI_CONF, $LANG_LINKS, $LANG_WHATSNEW;
 
-    if ( $_LI_CONF['hidenewlinks'] == 0 ) {
-        $retval = array( $LANG_LINKS[84],
-                         COM_formatTimeString( $LANG_WHATSNEW['new_last'],
-                                               $_LI_CONF['newlinksinterval'] )
+    if ($_LI_CONF['hidenewlinks'] == 0) {
+        $retval = array($LANG_LINKS[84],
+                        COM_formatTimeString($LANG_WHATSNEW['new_last'],
+                                             $_LI_CONF['newlinksinterval'])
                        );
     } else {
         $retval = false;
@@ -187,6 +186,7 @@ function plugin_autotags_links($op, $content = '', $autotag = '')
             if (empty($autotag['parm2'])) {
                 $result = DB_query("SELECT url, title FROM {$_TABLES['links']} WHERE lid = '$lid'");
                 list($siteurl, $linktext) = DB_fetchArray($result);
+                $linktext = stripslashes($linktext);
             } else {
                 $linktext = $autotag['parm2'];
                 $siteurl = DB_getItem($_TABLES['links'], 'url', "lid = '$lid'");
@@ -219,9 +219,9 @@ function plugin_chkVersion_links ()
 {
     global $_CONF;
 
-    require_once $_CONF['path'] . 'plugins/links/autoinstall.php';          
+    require_once $_CONF['path'] . 'plugins/links/autoinstall.php';
 
-    $inst_parms = plugin_autoinstall_links('links'); 
+    $inst_parms = plugin_autoinstall_links('links');
 
     return $inst_parms['info']['pi_version'];
 }
@@ -363,33 +363,26 @@ function plugin_dopluginsearch_links($query, $datestart, $dateend, $topic, $type
     // Make sure the query is SQL safe
     $query = trim(addslashes($query));
 
-    $sql = "SELECT lid AS id, title, description, UNIX_TIMESTAMP(date) AS date, owner_id AS uid, hits, CONCAT('/links/portal.php?what=link&amp;item=', lid) AS url ";
+    $sql = "SELECT lid AS id, title, description, UNIX_TIMESTAMP(date) AS date, owner_id AS uid, hits, ";
+    $sql .= "CONCAT('/links/portal.php?what=link&amp;item=', lid) AS url ";
     $sql .= "FROM {$_TABLES['links']} WHERE date <> 1 ";
     $sql .= COM_getPermSQL('AND') . ' ';
 
-    if (!empty($datestart) && !empty($dateend))
-    {
-        $delim = substr($datestart, 4, 1);
-        if (!empty($delim))
-        {
-            $DS = explode($delim, $datestart);
-            $DE = explode($delim, $dateend);
-            $startdate = mktime(0,0,0,$DS[1],$DS[2],$DS[0]);
-            $enddate = mktime(23,59,59,$DE[1],$DE[2],$DE[0]);
-            $sql .= "AND (UNIX_TIMESTAMP(date) BETWEEN '$startdate' AND '$enddate') ";
-        }
-    }
     if (!empty ($author)) {
         $sql .= "AND (owner_id = '$author') ";
     }
 
     $search = new SearchCriteria('links', $LANG_LINKS[14]);
-    $columns = array('description', 'title' => 'title');
+
+    $columns = array('title' => 'title', 'description');
+    $sql .= $search->getDateRangeSQL('AND', 'date', $datestart, $dateend);
     list($sql,$ftsql) = $search->buildSearchSQL($keyType, $query, $columns, $sql);
+
     $search->setSQL($sql);
     $search->setFTSQL($ftsql);
     $search->setRank(3);
     $search->setAppendQuery(false);
+    $search->setURLRewrite(true);
 
     return $search;
 }
@@ -639,15 +632,15 @@ function plugin_upgrade_links()
 {
     global $_CONF, $_TABLES, $_LI_CONF;
 
-    $installed_version = DB_getItem($_TABLES['plugins'], 'pi_version',         
+    $installed_version = DB_getItem($_TABLES['plugins'], 'pi_version',
                                     "pi_name = 'links'");
     $code_version = plugin_chkVersion_links();
     if ($installed_version == $code_version) {
-        // nothing to do                                                       
-        return true; 
+        // nothing to do
+        return true;
     }
 
-    require_once $_CONF['path'] . 'plugins/links/autoinstall.php';          
+    require_once $_CONF['path'] . 'plugins/links/autoinstall.php';
 
     if (! plugin_compatible_with_this_version_links('links')) {
         return 3002;
@@ -886,7 +879,9 @@ function plugin_submit_links()
 
     $linkform = new Template($_CONF['path'] . 'plugins/links/templates');
     $linkform->set_file('linkform', 'submitlink.thtml');
+    $linkform->set_var('xhtml', XHTML);
     $linkform->set_var('site_url', $_CONF['site_url']);
+    $linkform->set_var('site_admin_url', $_CONF['site_admin_url']);
     $linkform->set_var('layout_url', $_CONF['layout_url']);
     $linkform->set_var('lang_title', $LANG12[10]);
     $linkform->set_var('lang_link', $LANG_LINKS_SUBMIT[2]);
@@ -900,7 +895,6 @@ function plugin_submit_links()
     $linkform->set_var('lang_htmlnotallowed', $LANG12[35]);
     $linkform->set_var('lang_submit', $LANG12[8]);
     $linkform->set_var('max_url_length', 255);
-    $linkform->set_var('xhtml', XHTML);
     $linkform->parse('theform', 'linkform');
     $retval .= $linkform->finish($linkform->get_var('theform'));
     $retval .= COM_endBlock();
@@ -1451,10 +1445,9 @@ function plugin_getiteminfo_links($lid, $what, $uid = 0, $options = array())
             $fields[] = 'title';
             break;
         case 'url':
-            if ($lid == '*') {
-                // in this case, we need the lid to build the URL
-                $fields[] = 'lid';
-            }
+            // needed for $lid == '*', but also in case we're only requesting
+            // the URL (so that $fields isn't emtpy)
+            $fields[] = 'lid';
             break;
         default:
             // nothing to do

@@ -8,7 +8,7 @@
 // |                                                                           |
 // | Geeklog database library.                                                 |
 // +---------------------------------------------------------------------------+
-// | Copyright (C) 2000-2009 by the following authors:                         |
+// | Copyright (C) 2000-2010 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs, tony AT tonybibbs DOT com                            |
 // +---------------------------------------------------------------------------+
@@ -69,8 +69,6 @@ $_TABLES['maillist']            = $_DB_table_prefix . 'maillist';
 $_TABLES['pingservice']         = $_DB_table_prefix . 'pingservice';
 $_TABLES['plugins']             = $_DB_table_prefix . 'plugins';
 $_TABLES['postmodes']           = $_DB_table_prefix . 'postmodes';
-$_TABLES['plugin_repository']          = $_DB_table_prefix . 'plugin_repository';
-$_TABLES['plugin_repository_list'] = $_DB_table_prefix. 'plugin_repository_list';
 $_TABLES['sessions']            = $_DB_table_prefix . 'sessions';
 $_TABLES['sortcodes']           = $_DB_table_prefix . 'sortcodes';
 $_TABLES['speedlimit']          = $_DB_table_prefix . 'speedlimit';
@@ -135,6 +133,9 @@ require_once $_CONF['path_system'] . 'databases/'. $_DB_dbms . '.class.php';
 // Instantiate the database object
 $_DB = new database($_DB_host, $_DB_name, $_DB_user, $_DB_pass, 'COM_errorLog',
                     $_CONF['default_charset']);
+if (isset($_CONF['rootdebug']) && $_CONF['rootdebug']) {
+    DB_displayError(true);
+}
 
 // +---------------------------------------------------------------------------+
 // | These are the library functions.  In all cases they turn around and make  |

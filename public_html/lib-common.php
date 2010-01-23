@@ -8,7 +8,7 @@
 // |                                                                           |
 // | Geeklog common library.                                                   |
 // +---------------------------------------------------------------------------+
-// | Copyright (C) 2000-2009 by the following authors:                         |
+// | Copyright (C) 2000-2010 by the following authors:                         |
 // |                                                                           |
 // | Authors: Tony Bibbs        - tony AT tonybibbs DOT com                    |
 // |          Mark Limburg      - mlimburg AT users DOT sourceforge DOT net    |
@@ -34,7 +34,7 @@
 // +---------------------------------------------------------------------------+
 
 // Prevent PHP from reporting uninitialized variables
-error_reporting( E_ERROR | E_WARNING | E_PARSE | E_COMPILE_ERROR );
+error_reporting(E_ERROR | E_WARNING | E_PARSE | E_COMPILE_ERROR | E_USER_ERROR);
 
 /**
 * This is the common library for Geeklog.  Through our code, you will see
@@ -70,7 +70,7 @@ $_REQUEST = array_merge($_GET, $_POST);
 *
 * Must make sure that the function hasn't been disabled before calling it.
 *
-*/
+*/ 
 if (function_exists('set_error_handler')) {
     if (PHP_VERSION >= 5) {
         /* Tell the error handler to use the default error reporting options.
@@ -89,6 +89,8 @@ if (function_exists('set_error_handler')) {
 * You do NOT need to modify anything here any more!
 */
 require_once 'siteconfig.php';
+
+COM_checkInstalled();
 
 /**
 * Configuration class
@@ -109,7 +111,8 @@ if (isset($_CONF['site_enabled']) && !$_CONF['site_enabled']) {
     if (empty($_CONF['site_disabled_msg'])) {
         header("HTTP/1.1 503 Service Unavailable");
         header("Status: 503 Service Unavailable");
-        echo $_CONF['site_name'] . ' is temporarily down.  Please check back soon.';
+        header('Content-Type: text/plain; charset=' . COM_getCharset());
+        echo $_CONF['site_name'] . ' is temporarily down.  Please check back soon.' . LB;
     } else {
         // if the msg starts with http: assume it's a URL we should redirect to
         if (preg_match("/^(https?):/", $_CONF['site_disabled_msg']) === 1) {
@@ -117,7 +120,8 @@ if (isset($_CONF['site_enabled']) && !$_CONF['site_enabled']) {
         } else {
             header("HTTP/1.1 503 Service Unavailable");
             header("Status: 503 Service Unavailable");
-            echo $_CONF['site_disabled_msg'];
+            header('Content-Type: text/html; charset=' . COM_getCharset());
+            echo $_CONF['site_disabled_msg'] . LB;
         }
     }
 
@@ -128,12 +132,6 @@ if (isset($_CONF['site_enabled']) && !$_CONF['site_enabled']) {
 if (strpos(strtolower($_SERVER['PHP_SELF']), 'lib-common.php') !== false) {
     echo COM_refresh($_CONF['site_url'] . '/index.php');
     exit;
-}
-
-// timezone hack - set the webserver's timezone
-if( !empty( $_CONF['timezone'] ) && !ini_get( 'safe_mode' ) &&
-        function_exists( 'putenv' )) {
-    putenv( 'TZ=' . $_CONF['timezone'] );
 }
 
 
@@ -159,6 +157,21 @@ if (! $_CONF['have_pear']) {
     }
 }
 
+/**
+* Set the webserver's timezone
+*/
+
+require_once $_CONF['path_system'] . 'classes/timezoneconfig.class.php';
+TimeZoneConfig::setSystemTimeZone();
+
+/**
+* Include plugin class.
+* This is a poorly implemented class that was not very well thought out.
+* Still very necessary
+*
+*/
+
+require_once( $_CONF['path_system'] . 'lib-plugins.php' );
 
 /**
 * Include page time -- used to time how fast each page was created
@@ -185,15 +198,6 @@ $_URL = new url( $_CONF['url_rewrite'] );
 */
 
 require_once( $_CONF['path_system'] . 'classes/template.class.php' );
-
-/**
-* This is the database library.
-*
-* Including this gives you a working connection to the database
-*
-*/
-
-require_once( $_CONF['path_system'] . 'lib-database.php' );
 
 /**
 * This is the security library used for application security
@@ -231,20 +235,16 @@ $_CONF['right_blocks_in_footer'] = 1;  // use right blocks in footer
 require_once( $_CONF['path_system'] . 'lib-custom.php' );
 
 /**
-* Include plugin class.
-* This is a poorly implemented class that was not very well thought out.
-* Still very necessary
-*
-*/
-
-require_once( $_CONF['path_system'] . 'lib-plugins.php' );
-
-/**
 * Session management library
 *
 */
 
 require_once( $_CONF['path_system'] . 'lib-sessions.php' );
+TimeZoneConfig::setUserTimeZone();
+
+if (COM_isAnonUser()) {
+    $_USER['advanced_editor'] = $_CONF['advanced_editor'];
+}
 
 /**
 * Ulf Harnhammar's kses class
@@ -319,6 +319,9 @@ if (!defined('XHTML')) {
         break;
 
     default:
+        /**
+        * @ignore
+        */
         define('XHTML', '');
         break;
     }
@@ -581,7 +584,7 @@ function COM_getThemes( $all = false )
 */
 function COM_renderMenu( &$header, $plugin_menu )
 {
-    global $_CONF, $_USER, $LANG01, $topic;
+    global $_CONF, $LANG01, $topic;
 
     if( empty( $_CONF['menu_elements'] ))
     {
@@ -594,7 +597,7 @@ function COM_renderMenu( &$header, $plugin_menu )
     $allowedCounter = 0;
     $counter = 0;
 
-    $num_plugins = sizeof( $plugin_menu );
+    $num_plugins = count( $plugin_menu );
     if( ( $num_plugins == 0 ) && in_array( 'plugins', $_CONF['menu_elements'] ))
     {
         $key = array_search( 'plugins', $_CONF['menu_elements'] );
@@ -608,14 +611,14 @@ function COM_renderMenu( &$header, $plugin_menu )
         {
             $custom_entries = CUSTOM_menuEntries();
         }
-        if( sizeof( $custom_entries ) == 0 )
+        if( count( $custom_entries ) == 0 )
         {
             $key = array_search( 'custom', $_CONF['menu_elements'] );
             unset( $_CONF['menu_elements'][$key] );
         }
     }
 
-    $num_elements = sizeof( $_CONF['menu_elements'] );
+    $num_elements = count( $_CONF['menu_elements'] );
 
     foreach( $_CONF['menu_elements'] as $item )
     {
@@ -646,30 +649,29 @@ function COM_renderMenu( &$header, $plugin_menu )
                 break;
 
             case 'custom':
-                $custom_count = 0;
-                $custom_size = sizeof( $custom_entries );
-                foreach( $custom_entries as $entry )
-                {
-                    $custom_count++;
+                if (function_exists('CUSTOM_renderMenu')) {
+                    CUSTOM_renderMenu($header, $custom_entries, $menuCounter);
+                } else {
+                    $custom_count = 0;
+                    $custom_size = count($custom_entries);
+                    foreach ($custom_entries as $entry) {
+                        $custom_count++;
 
-                    if( empty( $entry['url'] ) || empty( $entry['label'] ))
-                    {
-                        continue;
-                    }
+                        if (empty($entry['url']) || empty($entry['label'])) {
+                            continue;
+                        }
 
-                    $header->set_var( 'menuitem_url',  $entry['url'] );
-                    $header->set_var( 'menuitem_text', $entry['label'] );
+                        $header->set_var('menuitem_url',  $entry['url']);
+                        $header->set_var('menuitem_text', $entry['label']);
 
-                    if( $last_entry && ( $custom_count == $custom_size ))
-                    {
-                        $header->parse( 'menu_elements', 'menuitem_last',
-                                        true );
+                        if ($last_entry && ($custom_count == $custom_size)) {
+                            $header->parse('menu_elements', 'menuitem_last',
+                                           true);
+                        } else {
+                            $header->parse('menu_elements', 'menuitem', true);
+                        }
+                        $menuCounter++;
                     }
-                    else
-                    {
-                        $header->parse( 'menu_elements', 'menuitem', true );
-                    }
-                    $menuCounter++;
                 }
                 $url = '';
                 $label = '';
@@ -881,6 +883,10 @@ function COM_siteHeader( $what = 'menu', $pagetitle = '', $headercode = '' )
     // send out the charset header
     header('Content-Type: text/html; charset=' . COM_getCharset());
 
+    if (!empty($_CONF['frame_options'])) {
+        header('X-FRAME-OPTIONS: ' . $_CONF['frame_options']);
+    }
+
     $header = new Template( $_CONF['path_layout'] );
     $header->set_file( array(
         'header'        => 'header.thtml',
@@ -996,11 +1002,13 @@ function COM_siteHeader( $what = 'menu', $pagetitle = '', $headercode = '' )
     // TBD: add a plugin API and a lib-custom.php function
     $header->set_var( 'rel_links', implode( LB, $relLinks ));
 
+    $pagetitle_siteslogan = false;
     if( empty( $pagetitle ))
     {
         if( empty( $topic ))
         {
             $pagetitle = $_CONF['site_slogan'];
+            $pagetitle_siteslogan = true;
         }
         else
         {
@@ -1019,7 +1027,7 @@ function COM_siteHeader( $what = 'menu', $pagetitle = '', $headercode = '' )
     $header->set_var( 'page_title', $pagetitle );
     $header->set_var( 'site_name', $_CONF['site_name']);
 
-    if (COM_onFrontpage()) {
+    if (COM_onFrontpage() OR $pagetitle_siteslogan) {
         $title_and_name = $_CONF['site_name'];
         if (!empty($pagetitle)) {
             $title_and_name .= ' - ' . $pagetitle;
@@ -1204,22 +1212,79 @@ function COM_siteHeader( $what = 'menu', $pagetitle = '', $headercode = '' )
         }
     }
 
-    if( isset( $_CONF['advanced_editor'] ) && ( $_CONF['advanced_editor'] == 1 )
-            && file_exists( $_CONF['path_layout']
-                            . 'advanced_editor_header.thtml' ))
-    {
-        $header->set_file( 'editor'  , 'advanced_editor_header.thtml');
-        $header->parse( 'advanced_editor', 'editor' );
+    if ($_CONF['advanced_editor'] && $_USER['advanced_editor']) {
+        $header->set_file('editor', 'advanced_editor_header.thtml');
+        $header->parse('advanced_editor', 'editor');
 
-    }
-    else
-    {
-         $header->set_var( 'advanced_editor', '' );
+    } else {
+         $header->set_var('advanced_editor', '');
     }
 
     // Call any plugin that may want to include extra Meta tags
     // or Javascript functions
-    $header->set_var( 'plg_headercode', $headercode . PLG_getHeaderCode() );
+    $headercode .= PLG_getHeaderCode();
+    
+    // Meta Tags
+    // 0 = Disabled, 1 = Enabled, 2 = Enabled but default just for homepage
+    if ($_CONF['meta_tags'] > 0) {
+        $meta_description = '';
+        $meta_keywords = '';
+        $no_meta_description = 1;
+        $no_meta_keywords = 1;
+        
+        //Find out if the meta tag description or keywords already exist in the headercode
+        if ($headercode != '') { 
+            $pattern = '/<meta ([^>]*)name="([^"\'>]*)"([^>]*)/im'; 
+            if (preg_match_all($pattern, $headercode, $matches, PREG_SET_ORDER)) {
+                // Loop through all meta tags looking for description and keywords
+                for ($i = 0; $i<count($matches) && (($no_meta_description == 1) || ($no_meta_keywords == 1)); $i++) { 
+                    $str_matches = strtolower($matches[$i][0]); 
+                    $pos = strpos($str_matches,'name='); 
+                    if (!(is_bool($pos) && !$pos)) { 
+                        $name = trim(substr($str_matches,$pos+5),'"'); 
+                        $pos = strpos($name,'"'); 
+                        $name = substr($name,0,$pos); 
+
+                        if (strcasecmp("description",$name) == 0) { 
+                            $pos = strpos($str_matches,'content='); 
+                            if (!(is_bool($pos) && !$pos)) {
+                                $no_meta_description = 0;
+                            }
+                        }
+                        if (strcasecmp("keywords",$name) == 0) { 
+                            $pos = strpos($str_matches,'content='); 
+                            if (!(is_bool($pos) && !$pos)) {
+                                $no_meta_keywords = 0;
+                            }
+                        }
+                        
+                    }
+                }
+            } 
+        }
+        
+        If (COM_onFrontpage() && $_CONF['meta_tags'] == 2) { // Display default meta tags only on home page
+            If ($no_meta_description) {
+                $meta_description = $_CONF['meta_description'];
+            }
+            If ($no_meta_keywords) {
+                $meta_keywords = $_CONF['meta_keywords'];
+            }
+        } else if ( $_CONF['meta_tags'] == 1 ) { // Display default meta tags anywhere there are no tags
+            If ($no_meta_description) {
+                $meta_description = $_CONF['meta_description'];
+            }
+            If ($no_meta_keywords) {
+                $meta_keywords = $_CONF['meta_keywords'];
+            }            
+        }
+        
+        If ($no_meta_description OR $no_meta_keywords) {
+            $headercode .= COM_createMetaTags($meta_description, $meta_keywords);
+        }
+    }
+    
+    $header->set_var( 'plg_headercode', $headercode );
 
     // The following lines allow users to embed PHP in their templates.  This
     // is almost a contradition to the reasons for using templates but this may
@@ -1765,7 +1830,7 @@ function COM_checkList($table, $selection, $where = '', $selected = '', $fieldna
         {
             $retval .= '<li><input type="checkbox" name="' . $fieldname . '[]" value="' . $A[0] . '"';
 
-            $sizeS = sizeof( $S );
+            $sizeS = count( $S );
             for( $x = 0; $x < $sizeS; $x++ )
             {
                 if( $A[0] == $S[$x] )
@@ -1797,25 +1862,21 @@ function COM_checkList($table, $selection, $where = '', $selected = '', $fieldna
 * under the GPL.  This is not used very much in the code but you can use it
 * if you see fit
 *
-* @param        array       $A      Array to loop through and print values for
-* @return   string  Formated HTML List
+* @param    array   $array    Array to loop through and print values for
+* @return   string  $retval    Formatted HTML List
 *
 */
 
-function COM_debug( $A )
+function COM_debug($array)
 {
-    if( !empty( $A ))
-    {
-        $retval .= LB . '<pre><p>---- DEBUG ----</p>';
-
-        for( reset( $A ); $k = key( $A ); next( $A ))
-        {
-            $retval .= sprintf( "<li>%13s [%s]</li>\n", $k, $A[$k] );
+    $retval = '';    
+    if(!empty($array)) {
+        $retval = '<ul><pre><p>---- DEBUG ----</p>';
+        foreach($array as $k => $v) { 
+            $retval .= sprintf("<li>%13s [%s]</li>\n", $k, $v);
         }
-
-        $retval .= '<p>---------------</p></pre>' . LB;
-    }
-
+        $retval .= '<p>---------------</p></pre></ul>';
+    }    
     return $retval;
 }
 
@@ -1894,12 +1955,20 @@ function COM_featuredCheck()
 
     $curdate = date( "Y-m-d H:i:s", time() );
 
-    if( DB_getItem( $_TABLES['stories'], 'COUNT(*)', "featured = 1 AND draft_flag = 0 AND date <= '$curdate'" ) > 1 )
+    // Loop through each topic
+    $sql = "SELECT tid FROM {$_TABLES['topics']}";
+    $result = DB_query( $sql );
+    $num = DB_numRows( $result );
+    for( $i = 0; $i < $num; $i++)
     {
-        // OK, we have two featured stories, fix that
+        $A = DB_fetchArray( $result );
 
-        $sid = DB_getItem( $_TABLES['stories'], 'sid', "featured = 1 AND draft_flag = 0 ORDER BY date LIMIT 1" );
-        DB_query( "UPDATE {$_TABLES['stories']} SET featured = 0 WHERE sid = '$sid'" );
+        if( DB_getItem( $_TABLES['stories'], 'COUNT(*)', "featured = 1 AND draft_flag = 0 AND tid = '{$A['tid']}' AND date <= '$curdate'" ) > 1 )
+        {
+            // OK, we have two featured stories in a topic, fix that
+            $sid = DB_getItem( $_TABLES['stories'], 'sid', "featured = 1 AND draft_flag = 0 ORDER BY date LIMIT 1" );
+            DB_query( "UPDATE {$_TABLES['stories']} SET featured = 0 WHERE sid = '$sid'" );
+        }
     }
 }
 
@@ -1928,7 +1997,7 @@ function COM_errorLog( $logentry, $actionid = '' )
         $logentry = str_replace( array( '<?', '?>' ), array( '(@', '@)' ),
                                  $logentry );
 
-        $timestamp = strftime( '%c' );
+        $timestamp = @strftime( '%c' );
 
         if (!isset($_CONF['path_layout']) &&
                 (($actionid == 2) || empty($actionid))) {
@@ -2010,7 +2079,7 @@ function COM_accessLog( $logentry )
         $logentry = str_replace( array( '<?', '?>' ), array( '(@', '@)' ),
                                  $logentry );
 
-        $timestamp = strftime( '%c' );
+        $timestamp = @strftime( '%c' );
         $logfile = $_CONF['path_log'] . 'access.log';
 
         if( !$file = fopen( $logfile, 'a' ))
@@ -2058,7 +2127,7 @@ function COM_showTopics( $topic='' )
         $op = 'AND';
     }
 
-    $sql = "SELECT tid,topic,imageurl FROM {$_TABLES['topics']}" . $langsql;
+    $sql = "SELECT tid,topic,imageurl,meta_description FROM {$_TABLES['topics']}" . $langsql;
     if( !COM_isAnonUser() )
     {
         $tids = DB_getItem( $_TABLES['userindex'], 'tids',
@@ -2208,6 +2277,17 @@ function COM_showTopics( $topic='' )
         }
         $sections->set_var( 'topic_image', $topicimage );
 
+        $desc = trim($A['meta_description']);
+        $sections->set_var('topic_description', $desc);
+        $desc_escaped = htmlspecialchars($desc);
+        $sections->set_var('topic_description_escaped', $desc_escaped);
+        if (! empty($desc)) {
+            $sections->set_var('topic_title_attribute',
+                               'title="' . $desc_escaped . '"');
+        } else {
+            $sections->set_var('topic_title_attribute', '');
+        }
+
         if(( $A['tid'] == $topic ) && ( $page == 1 ))
         {
             $retval .= $sections->parse( 'item', 'inactive' );
@@ -2234,7 +2314,7 @@ function COM_showTopics( $topic='' )
 */
 function COM_userMenu( $help='', $title='', $position='' )
 {
-    global $_TABLES, $_USER, $_CONF, $LANG01, $LANG04, $_BLOCK_TEMPLATE;
+    global $_TABLES, $_CONF, $LANG01, $LANG04, $_BLOCK_TEMPLATE;
 
     $retval = '';
 
@@ -2336,13 +2416,10 @@ function COM_userMenu( $help='', $title='', $position='' )
         $login->set_var( 'lang_password', $LANG01[57] );
         $login->set_var( 'lang_forgetpassword', $LANG01[119] );
         $login->set_var( 'lang_login', $LANG01[58] );
-        if( $_CONF['disable_new_user_registration'] == 1 )
-        {
-            $login->set_var( 'lang_signup', '' );
-        }
-        else
-        {
-            $login->set_var( 'lang_signup', $LANG01[59] );
+        if ($_CONF['disable_new_user_registration']) {
+            $login->set_var('lang_signup', '');
+        } else {
+            $login->set_var('lang_signup', $LANG01[59]);
         }
 
         // 3rd party remote authentification.
@@ -2393,6 +2470,7 @@ function COM_userMenu( $help='', $title='', $position='' )
             $login->set_var('openid_login', '');
         }
 
+        PLG_templateSetVars('loginblock', $login);
         $retval .= $login->finish($login->parse('output', 'form'));
         $retval .= COM_endBlock( COM_getBlockTemplate('user_block', 'footer', $position));
     }
@@ -2414,13 +2492,12 @@ function COM_userMenu( $help='', $title='', $position='' )
 */
 function COM_adminMenu( $help = '', $title = '', $position = '' )
 {
-    global $_TABLES, $_USER, $_CONF, $LANG01, $_BLOCK_TEMPLATE,
+    global $_TABLES, $_CONF, $LANG01, $LANG_ADMIN, $_BLOCK_TEMPLATE,
            $_DB_dbms, $config;
 
     $retval = '';
 
-    if( empty( $_USER['username'] ))
-    {
+    if (COM_isAnonUser()) {
         return $retval;
     }
 
@@ -2473,7 +2550,7 @@ function COM_adminMenu( $help = '', $title = '', $position = '' )
                     $T = DB_fetchArray( $tresult );
                     $tids[] = $T['tid'];
                 }
-                if( sizeof( $tids ) > 0 )
+                if( count( $tids ) > 0 )
                 {
                     $topicsql = " (tid IN ('" . implode( "','", $tids ) . "'))";
                 }
@@ -2625,7 +2702,7 @@ function COM_adminMenu( $help = '', $title = '', $position = '' )
             $url = $_CONF['site_admin_url'] . '/mail.php';
             $adminmenu->set_var( 'option_url', $url );
             $adminmenu->set_var( 'option_label', $LANG01[105] );
-            $adminmenu->set_var( 'option_count', 'N/A' );
+            $adminmenu->set_var( 'option_count', $LANG_ADMIN['na'] );
 
             $menu_item = $adminmenu->parse( 'item',
                     ( $thisUrl == $url ) ? 'current' : 'option' );
@@ -2658,7 +2735,7 @@ function COM_adminMenu( $help = '', $title = '', $position = '' )
             }
             else
             {
-                $adminmenu->set_var( 'option_count', 'N/A' );
+                $adminmenu->set_var( 'option_count', $LANG_ADMIN['na'] );
             }
 
             $menu_item = $adminmenu->parse( 'item',
@@ -2681,28 +2758,27 @@ function COM_adminMenu( $help = '', $title = '', $position = '' )
 
         // This will show the admin options for all installed plugins (if any)
 
-        for( $i = 0; $i < $num_plugins; $i++ )
-        {
-            $plg = current( $plugin_options );
+        for ($i = 0; $i < $num_plugins; $i++) {
+            $plg = current($plugin_options);
 
-            $adminmenu->set_var( 'option_url', $plg->adminurl );
-            $adminmenu->set_var( 'option_label', $plg->adminlabel );
+            $adminmenu->set_var('option_url',   $plg->adminurl);
+            $adminmenu->set_var('option_label', $plg->adminlabel);
 
-            if( empty( $plg->numsubmissions ))
-            {
-                $adminmenu->set_var( 'option_count', 'N/A' );
+            if (isset($plg->numsubmissions) &&
+                    is_numeric($plg->numsubmissions)) {
+                $adminmenu->set_var('option_count',
+                                    COM_numberFormat($plg->numsubmissions));
+            } elseif (! empty($plg->numsubmissions)) {
+                $adminmenu->set_var('option_count', $plg->numsubmissions);
+            } else {
+                $adminmenu->set_var('option_count', $LANG_ADMIN['na']);
             }
-            else
-            {
-                $adminmenu->set_var( 'option_count',
-                                     COM_numberFormat( $plg->numsubmissions ));
-            }
 
-            $menu_item = $adminmenu->parse( 'item',
-                    ( $thisUrl == $plg->adminurl ) ? 'current' : 'option', true );
+            $menu_item = $adminmenu->parse('item',
+                    ($thisUrl == $plg->adminurl) ? 'current' : 'option', true);
             $link_array[$plg->adminlabel] = $menu_item;
 
-            next( $plugin_options );
+            next($plugin_options);
         }
 
         if(( $_CONF['allow_mysqldump'] == 1 ) AND ( $_DB_dbms == 'mysql' ) AND
@@ -2711,7 +2787,7 @@ function COM_adminMenu( $help = '', $title = '', $position = '' )
             $url = $_CONF['site_admin_url'] . '/database.php';
             $adminmenu->set_var( 'option_url', $url );
             $adminmenu->set_var( 'option_label', $LANG01[103] );
-            $adminmenu->set_var( 'option_count', 'N/A' );
+            $adminmenu->set_var( 'option_count', $LANG_ADMIN['na'] );
 
             $menu_item = $adminmenu->parse( 'item',
                     ( $thisUrl == $url ) ? 'current' : 'option' );
@@ -2729,7 +2805,7 @@ function COM_adminMenu( $help = '', $title = '', $position = '' )
                                     . '/docs/english/index.html');
             }
             $adminmenu->set_var('option_label', $LANG01[113]);
-            $adminmenu->set_var('option_count', 'N/A');
+            $adminmenu->set_var('option_count', $LANG_ADMIN['na']);
             $menu_item = $adminmenu->parse('item', 'option');
             $link_array[$LANG01[113]] = $menu_item;
         }
@@ -2988,7 +3064,7 @@ function COM_checkHTML( $str, $permissions = 'story.edit' )
     $str = preg_replace( '/<!--.+?-->/', '', $str );
 
     $filter = new kses4;
-    if( isset( $_CONF['allowed_protocols'] ) && is_array( $_CONF['allowed_protocols'] ) && ( sizeof( $_CONF['allowed_protocols'] ) > 0 ))
+    if( isset( $_CONF['allowed_protocols'] ) && is_array( $_CONF['allowed_protocols'] ) && ( count( $_CONF['allowed_protocols'] ) > 0 ))
     {
         $filter->SetProtocols( $_CONF['allowed_protocols'] );
     }
@@ -3004,13 +3080,13 @@ function COM_checkHTML( $str, $permissions = 'story.edit' )
     }
     else
     {
-        if ($_CONF['advanced_editor'] && is_array($_CONF['advanced_html'])) {
-            $html = array_merge_recursive( $_CONF['user_html'],
-                                           $_CONF['admin_html'],
-                                           $_CONF['advanced_html'] );
+        if ($_CONF['advanced_editor'] && $_USER['advanced_editor']) {
+            $html = array_merge_recursive($_CONF['user_html'],
+                                          $_CONF['admin_html'],
+                                          $_CONF['advanced_html']);
         } else {
-            $html = array_merge_recursive( $_CONF['user_html'],
-                                           $_CONF['admin_html'] );
+            $html = array_merge_recursive($_CONF['user_html'],
+                                          $_CONF['admin_html']);
         }
     }
 
@@ -3140,18 +3216,20 @@ function COM_emailEscape( $string )
 * @return   string              formatted email address
 *
 */
-function COM_formatEmailAddress( $name, $address )
+function COM_formatEmailAddress($name, $address)
 {
+    $name = trim($name);
+    $address = trim($address);
+
     if (function_exists('CUSTOM_formatEmailAddress')) {
         return CUSTOM_formatEmailAddress($name, $address);
     }
 
-    $formatted_name = COM_emailEscape( $name );
+    $formatted_name = COM_emailEscape($name);
 
     // if the name comes back unchanged, it's not UTF-8, so preg_match is fine
-    if(( $formatted_name == $name ) && preg_match( '/[^0-9a-z ]/i', $name ))
-    {
-        $formatted_name = str_replace( '"', '\\"', $formatted_name );
+    if (($formatted_name == $name) && preg_match('/[^0-9a-z ]/i', $name)) {
+        $formatted_name = str_replace('"', '\\"', $formatted_name);
         $formatted_name = '"' . $formatted_name . '"';
     }
 
@@ -3161,10 +3239,10 @@ function COM_formatEmailAddress( $name, $address )
 /**
 * Send an email.
 *
-* All emails sent by Geeklog are sent through this function now.
+* All emails sent by Geeklog are sent through this function.
 *
-* NOTE: Please note that using the $cc parameter will expose the email addresses
-*       of all recipients. Use with care.
+* NOTE: Please note that using CC: will expose the email addresses of
+*       all recipients. Use with care.
 *
 * @param    string      $to         recipients name and email address
 * @param    string      $subject    subject of the email
@@ -3172,47 +3250,44 @@ function COM_formatEmailAddress( $name, $address )
 * @param    string      $from       (optional) sender of the the email
 * @param    boolean     $html       (optional) true if to be sent as HTML email
 * @param    int         $priority   (optional) add X-Priority header, if > 0
-* @param    string      $cc         (optional) other recipients (name + email)
+* @param    mixed       $optional   (optional) other headers or CC:
 * @return   boolean                 true if successful,  otherwise false
 *
 */
-function COM_mail( $to, $subject, $message, $from = '', $html = false, $priority = 0, $cc = '' )
+function COM_mail($to, $subject, $message, $from = '', $html = false, $priority = 0, $optional = null)
 {
     global $_CONF;
 
     static $mailobj;
 
-    if( empty( $from ))
-    {
-        $from = COM_formatEmailAddress( $_CONF['site_name'], $_CONF['site_mail']);
+    if (empty($from)) {
+        $from = COM_formatEmailAddress($_CONF['site_name'], $_CONF['site_mail']);
     }
 
-    $to = substr( $to, 0, strcspn( $to, "\r\n" ));
-    $cc = substr( $cc, 0, strcspn( $cc, "\r\n" ));
-    $from = substr( $from, 0, strcspn( $from, "\r\n" ));
-    $subject = substr( $subject, 0, strcspn( $subject, "\r\n" ));
-    $subject = COM_emailEscape( $subject );
+    $to = substr($to, 0, strcspn($to, "\r\n"));
+    if (($optional != null) && !is_array($optional)) {
+        $optional = substr($optional, 0, strcspn($optional, "\r\n"));
+    }
+    $from = substr($from, 0, strcspn($from, "\r\n"));
+    $subject = substr($subject, 0, strcspn($subject, "\r\n"));
+    $subject = COM_emailEscape($subject);
 
-    if( function_exists( 'CUSTOM_mail' ))
-    {
-        return CUSTOM_mail( $to, $subject, $message, $from, $html, $priority, $cc );
+    if (function_exists('CUSTOM_mail')) {
+        return CUSTOM_mail($to, $subject, $message, $from, $html, $priority,
+                           $optional);
     }
 
-    include_once( 'Mail.php' );
-    include_once( 'Mail/RFC822.php' );
+    include_once 'Mail.php';
+    include_once 'Mail/RFC822.php';
 
     $method = $_CONF['mail_settings']['backend'];
 
-    if( !isset( $mailobj ))
-    {
-        if(( $method == 'sendmail' ) || ( $method == 'smtp' ))
-        {
-            $mailobj =& Mail::factory( $method, $_CONF['mail_settings'] );
-        }
-        else
-        {
+    if (! isset($mailobj)) {
+        if (($method == 'sendmail') || ($method == 'smtp')) {
+            $mailobj =& Mail::factory($method, $_CONF['mail_settings']);
+        } else {
             $method = 'mail';
-            $mailobj =& Mail::factory( $method );
+            $mailobj =& Mail::factory($method);
         }
     }
 
@@ -3220,34 +3295,28 @@ function COM_mail( $to, $subject, $message, $from = '', $html = false, $priority
     $headers = array();
 
     $headers['From'] = $from;
-    if( $method != 'mail' )
-    {
+    if ($method != 'mail') {
         $headers['To'] = $to;
     }
-    if( !empty( $cc ))
-    {
-        $headers['Cc'] = $cc;
+    if (($optional != null) && !is_array($optional) && !empty($optional)) {
+        // assume old (optional) CC: header
+        $headers['Cc'] = $optional;
     }
-    $headers['Date'] = date( 'r' ); // RFC822 formatted date
-    if( $method == 'smtp' )
-    {
-        list( $usec, $sec ) = explode( ' ', microtime());
-        $m = substr( $usec, 2, 5 );
-        $headers['Message-Id'] = '<' .  date( 'YmdHis' ) . '.' . $m
+    $headers['Date'] = date('r'); // RFC822 formatted date
+    if($method == 'smtp') {
+        list($usec, $sec) = explode(' ', microtime());
+        $m = substr($usec, 2, 5);
+        $headers['Message-Id'] = '<' .  date('YmdHis') . '.' . $m
                                . '@' . $_CONF['mail_settings']['host'] . '>';
     }
-    if( $html )
-    {
+    if ($html) {
         $headers['Content-Type'] = 'text/html; charset=' . $charset;
         $headers['Content-Transfer-Encoding'] = '8bit';
-    }
-    else
-    {
+    } else {
         $headers['Content-Type'] = 'text/plain; charset=' . $charset;
     }
     $headers['Subject'] = $subject;
-    if( $priority > 0 )
-    {
+    if ($priority > 0) {
         $headers['X-Priority'] = $priority;
     }
     $headers['X-Mailer'] = 'Geeklog ' . VERSION;
@@ -3261,13 +3330,19 @@ function COM_mail( $to, $subject, $message, $from = '', $html = false, $priority
         }
     }
 
-    $retval = $mailobj->send( $to, $headers, $message );
-    if( $retval !== true )
-    {
-        COM_errorLog( $retval->toString(), 1 );
+    // add optional headers last
+    if (($optional != null) && is_array($optional)) {
+        foreach ($optional as $h => $v) {
+            $headers[$h] = $v;
+        }
     }
 
-    return( $retval === true ? true : false );
+    $retval = $mailobj->send($to, $headers, $message);
+    if ($retval !== true) {
+        COM_errorLog($retval->toString(), 1);
+    }
+
+    return($retval === true ? true : false);
 }
 
 
@@ -3455,7 +3530,8 @@ function COM_showBlocks( $side, $topic='', $name='all' )
 
     if( !empty( $topic ))
     {
-        $commonsql .= " AND (tid = '$topic' OR tid = 'all')";
+        $tp = addslashes($topic);
+        $commonsql .= " AND (tid = '$tp' OR tid = 'all')";
     }
     else
     {
@@ -3497,7 +3573,7 @@ function COM_showBlocks( $side, $topic='', $name='all' )
     // sort the resulting array by block order
     $column = 'blockorder';
     $sortedBlocks = $blocks;
-    $num_sortedBlocks = sizeof( $sortedBlocks );
+    $num_sortedBlocks = count( $sortedBlocks );
     for( $i = 0; $i < $num_sortedBlocks - 1; $i++ )
     {
         for( $j = 0; $j < $num_sortedBlocks - 1 - $i; $j++ )
@@ -3538,7 +3614,7 @@ function COM_showBlocks( $side, $topic='', $name='all' )
 */
 function COM_formatBlock( $A, $noboxes = false )
 {
-    global $_CONF, $_TABLES, $_USER, $LANG21;
+    global $_CONF, $_TABLES, $LANG21;
 
     $retval = '';
 
@@ -3631,30 +3707,29 @@ function COM_formatBlock( $A, $noboxes = false )
         }
     }
 
-    if( !empty( $A['content'] ) && ( trim( $A['content'] ) != '' ) && !$noboxes )
-    {
-        $blockcontent = stripslashes( $A['content'] );
+    if (!empty($A['content']) && (trim($A['content']) != '') && !$noboxes) {
+        $blockcontent = stripslashes($A['content']);
 
         // Hack: If the block content starts with a '<' assume it
         // contains HTML and do not call nl2br() which would only add
         // unwanted <br> tags.
 
-        if( substr( $blockcontent, 0, 1 ) != '<' )
-        {
-            $blockcontent = nl2br( $blockcontent );
+        if (substr($blockcontent, 0, 1) != '<') {
+            $blockcontent = nl2br($blockcontent);
         }
 
         // autotags are only(!) allowed in normal blocks
-        if(( $A['allow_autotags'] == 1 ) && ( $A['type'] == 'normal' ))
-        {
-            $blockcontent = PLG_replaceTags( $blockcontent );
+        if (($A['allow_autotags'] == 1) && ($A['type'] == 'normal')) {
+            $blockcontent = PLG_replaceTags($blockcontent);
         }
-        $blockcontent = str_replace( array( '<?', '?>' ), '', $blockcontent );
+        $blockcontent = str_replace(array('<?', '?>'), '', $blockcontent);
+        $blockcontent = str_replace(array('{', '}'), array('&#123;', '&#125;'),
+                                    $blockcontent);
 
-        $retval .= COM_startBlock( $A['title'], $A['help'],
-                       COM_getBlockTemplate( $A['name'], 'header', $position ))
+        $retval .= COM_startBlock($A['title'], $A['help'],
+                       COM_getBlockTemplate($A['name'], 'header', $position))
                 . $blockcontent . LB
-                . COM_endBlock( COM_getBlockTemplate( $A['name'], 'footer', $position ));
+                . COM_endBlock(COM_getBlockTemplate($A['name'], 'footer', $position));
     }
 
     return $retval;
@@ -3812,76 +3887,69 @@ function COM_rdfImport($bid, $rdfurl, $maxheadlines = 0)
 *
 * @param    string  $permissions    comma-separated list of rights which identify the current user as an "Admin"
 * @param    boolean $list_only      true = return only the list of HTML tags
-* @return   string  HTML <span> enclosed string
-* @see function COM_checkHTML
+* @return   string                  HTML <div>/<span> enclosed string
+* @see      function COM_checkHTML
+* @todo     Bugs: The list always includes the [code], [raw], and [page_break]
+*           tags when story.* permissions are required, even when those tags
+*           are not actually available (e.g. in comments on stories).
+*
 */
-function COM_allowedHTML( $permissions = 'story.edit', $list_only = false )
+function COM_allowedHTML($permissions = 'story.edit', $list_only = false)
 {
     global $_CONF, $LANG01;
 
     $retval = '';
 
-    $allow_page_break = false;
-    if( isset( $_CONF['skip_html_filter_for_root'] ) &&
-             ( $_CONF['skip_html_filter_for_root'] == 1 ) &&
-            SEC_inGroup( 'Root' ))
-    {
-        if( !$list_only )
-        {
-            $retval .= '<span class="warningsmall">' . $LANG01[123] . ',</span> ';
+    if (isset($_CONF['skip_html_filter_for_root']) &&
+             ($_CONF['skip_html_filter_for_root'] == 1) &&
+            SEC_inGroup('Root')) {
+
+        if (!$list_only) {
+            $retval .= '<span class="warningsmall">' . $LANG01[123]
+                    . ',</span> ';
         }
         $retval .= '<div dir="ltr" class="warningsmall">';
-    }
-    else
-    {
-        if( !$list_only )
-        {
+
+    } else {
+
+        if (! $list_only) {
             $retval .= '<span class="warningsmall">' . $LANG01[31] . '</span> ';
         }
 
-        if( empty( $permissions ) || !SEC_hasRights( $permissions ) ||
-                empty( $_CONF['admin_html'] ))
-        {
+        if (empty($permissions) || !SEC_hasRights($permissions) ||
+                empty($_CONF['admin_html'])) {
             $html = $_CONF['user_html'];
-        }
-        else
-        {
-            $html = array_merge_recursive( $_CONF['user_html'],
-                                           $_CONF['admin_html'] );
-            if( $_CONF['allow_page_breaks'] == 1 )
-            {
-                $perms = explode( ',', $permissions );
-                foreach( $perms as $p )
-                {
-                    if( substr( $p, 0, 6 ) == 'story.' )
-                    {
-                        $allow_page_break = true;
-                        break;
-                    }
-                }
-            }
+        } else {
+            $html = array_merge_recursive($_CONF['user_html'],
+                                          $_CONF['admin_html']);
         }
 
         $retval .= '<div dir="ltr" class="warningsmall">';
-        foreach( $html as $tag => $attr )
-        {
+        foreach ($html as $tag => $attr) {
             $retval .= '&lt;' . $tag . '&gt;, ';
         }
     }
 
-    $retval .= '[code], [raw]';
-
-    if( $allow_page_break )
-    {
-        $retval .= ', [page_break]';
+    $with_story_perms = false;
+    $perms = explode(',', $permissions);
+    foreach ($perms as $p) {
+        if (substr($p, 0, 6) == 'story.') {
+            $with_story_perms = true;
+            break;
+        }
     }
 
-    // list autolink tags
-    $autotags = PLG_collectTags();
-    foreach( $autotags as $tag => $module )
-    {
-        $retval .= ', [' . $tag . ':]';
+    if ($with_story_perms) {
+        $retval .= '[code], [raw], ';
+
+        if ($_CONF['allow_page_breaks'] == 1) {
+            $retval .= '[page_break], ';
+        }
     }
+
+    // list autotags
+    $autotags = array_keys(PLG_collectTags());
+    $retval .= '[' . implode(':], [', $autotags) . ':]';
     $retval .= '</div>';
 
     return $retval;
@@ -3934,45 +4002,38 @@ function COM_getPassword( $loginname )
 * @return   string  Username, fullname or username@Service
 *
 */
-function COM_getDisplayName( $uid = '', $username='', $fullname='', $remoteusername='', $remoteservice='' )
+function COM_getDisplayName($uid = '', $username = '', $fullname = '', $remoteusername = '', $remoteservice = '')
 {
     global $_CONF, $_TABLES, $_USER;
 
-    if ($uid == '')
-    {
-        if( COM_isAnonUser() )
-        {
+    if ($uid == '') {
+        if (COM_isAnonUser()) {
             $uid = 1;
-        }
-        else
-        {
+        } else {
             $uid = $_USER['uid'];
         }
     }
 
-    if( empty( $username ))
-    {
-        $query = DB_query( "SELECT username, fullname, remoteusername, remoteservice FROM {$_TABLES['users']} WHERE uid='$uid'" );
-        list( $username, $fullname, $remoteusername, $remoteservice ) = DB_fetchArray( $query );
+    // "this shouldn't happen"
+    if ($uid == 0) {
+        $uid = 1;
     }
 
-    if( !empty( $fullname ) && ($_CONF['show_fullname'] == 1 ))
-    {
-        return $fullname;
+    if (empty($username)) {
+        $query = DB_query("SELECT username, fullname, remoteusername, remoteservice FROM {$_TABLES['users']} WHERE uid='$uid'");
+        list($username, $fullname, $remoteusername, $remoteservice) = DB_fetchArray($query);
     }
-    else if(( $_CONF['user_login_method']['3rdparty'] || $_CONF['user_login_method']['openid'] ) && !empty( $remoteusername ))
-    {
-        if( !empty( $username ))
-        {
+
+    if (!empty($fullname) && ($_CONF['show_fullname'] == 1)) {
+        return $fullname;
+    } elseif (($_CONF['user_login_method']['3rdparty'] || $_CONF['user_login_method']['openid']) && !empty($remoteusername)) {
+        if (! empty($username)) {
             $remoteusername = $username;
         }
 
-        if( $_CONF['show_servicename'] )
-    {
-        return "$remoteusername@$remoteservice";
-    }
-        else
-        {
+        if ($_CONF['show_servicename']) {
+            return "$remoteusername@$remoteservice";
+        } else {
             return $remoteusername;
         }
     }
@@ -4064,7 +4125,7 @@ function COM_emailUserTopics()
             $TIDS = array_intersect( $TIDS, $ETIDS );
         }
 
-        if( sizeof( $TIDS ) > 0)
+        if( count( $TIDS ) > 0)
         {
             $commonsql .= " AND (tid IN ('" . implode( "','", $TIDS ) . "'))";
         }
@@ -4163,7 +4224,7 @@ function COM_emailUserTopics()
 
 function COM_whatsNewBlock( $help = '', $title = '', $position = '' )
 {
-    global $_CONF, $_TABLES, $_USER, $LANG01, $LANG_WHATSNEW, $page, $newstories;
+    global $_CONF, $_TABLES, $LANG01, $LANG_WHATSNEW, $page, $newstories;
 
     $retval = COM_startBlock( $title, $help,
                        COM_getBlockTemplate( 'whats_new_block', 'header', $position ));
@@ -4363,7 +4424,7 @@ function COM_whatsNewBlock( $help = '', $title = '', $position = '' )
     if( $_CONF['hidenewplugins'] == 0 )
     {
         list( $headlines, $smallheadlines, $content ) = PLG_getWhatsNew();
-        $plugins = sizeof( $headlines );
+        $plugins = count( $headlines );
         if( $plugins > 0 )
         {
             for( $i = 0; $i < $plugins; $i++ )
@@ -4507,7 +4568,7 @@ function COM_showMessage($msg, $plugin = '')
                 $message = $$var;
             } else {
                 $message = sprintf($MESSAGE[61], $plugin);
-                COM_errorLog($MESSAGE[61] . ": " . $var, 1);
+                COM_errorLog($message . ": " . $var, 1);
             }
         } else {
             $message = $MESSAGE[$msg];
@@ -4782,8 +4843,7 @@ function COM_getUserCookieTimeout()
 {
     global $_TABLES, $_USER, $_CONF;
 
-    if( empty( $_USER ))
-    {
+    if (COM_isAnonUser()) {
         return;
     }
 
@@ -4804,7 +4864,7 @@ function COM_getUserCookieTimeout()
 
 function phpblock_whosonline()
 {
-    global $_CONF, $_TABLES, $_USER, $LANG01, $_IMAGE_TYPE;
+    global $_CONF, $_TABLES, $LANG01, $_IMAGE_TYPE;
 
     $retval = '';
 
@@ -4875,7 +4935,8 @@ function phpblock_whosonline()
         // note that we're overwriting the contents of $retval here
         if( $num_reg > 0 )
         {
-            $retval = $LANG01[112] . ': ' . $num_reg . '<br' . XHTML . '>';
+            $retval = $LANG01[112] . ': ' . COM_numberFormat($num_reg)
+                    . '<br' . XHTML . '>';
         }
         else
         {
@@ -4885,7 +4946,8 @@ function phpblock_whosonline()
 
     if( $num_anon > 0 )
     {
-        $retval .= $LANG01[41] . ': ' . $num_anon . '<br' . XHTML . '>';
+        $retval .= $LANG01[41] . ': ' . COM_numberFormat($num_anon)
+                . '<br' . XHTML . '>';
     }
 
     return $retval;
@@ -5581,7 +5643,7 @@ function COM_getTopicSQL( $type = 'WHERE', $u_id = 0, $table = '' )
         $tids[] = $T['tid'];
     }
 
-    if( sizeof( $tids ) > 0 )
+    if( count( $tids ) > 0 )
     {
         $topicsql .= "({$table}tid IN ('" . implode( "','", $tids ) . "'))";
     }
@@ -5857,32 +5919,28 @@ function COM_undoClickableLinks( $text )
 */
 function COM_highlightQuery( $text, $query, $class = 'highlight' )
 {
-    $query = str_replace( '+', ' ', $query );
+    // escape PCRE special characters
+    $query = preg_quote($query, '/');
 
-    // escape all the other PCRE special characters
-    $query = preg_quote( $query );
-
-    // ugly workaround:
-    // Using the /e modifier in preg_replace will cause all double quotes to
-    // be returned as \" - so we replace all \" in the result with unescaped
-    // double quotes. Any actual \" in the original text therefore have to be
-    // turned into \\" first ...
-    $text = str_replace( '\\"', '\\\\"', $text );
-
-    $mywords = explode( ' ', $query );
-    foreach( $mywords as $searchword )
+    $mywords = explode(' ', $query);
+    foreach ($mywords as $searchword)
     {
-        if( !empty( $searchword ))
+        if (!empty($searchword))
         {
-            $searchword = preg_quote( str_replace( "'", "\'", $searchword ));
-            $searchword = str_replace('/', '\\/', $searchword);
-            $text = preg_replace( '/(\>(((?>[^><]+)|(?R))*)\<)/ie', "preg_replace('/(?>$searchword+)/i','<span class=\"$class\">\\\\0</span>','\\0')", '<!-- x -->' . $text . '<!-- x -->' );
+            $before = "/(?!(?:[^<]+>|[^>]+<\/a>))\b";
+            $after = "\b/i";
+            if ($searchword <> utf8_encode($searchword)) {
+                 if (@preg_match('/^\pL$/u', urldecode('%C3%B1'))) { // Unicode property support
+                      $before = "/(?<!\p{L})";
+                      $after = "(?!\p{L})/u";
+                 } else {
+                      $before = "/";
+                      $after = "/u";
+                 }
+            }
+            $text = preg_replace($before . $searchword . $after, "<span class=\"$class\">\\0</span>", '<!-- x -->' . $text . '<!-- x -->' );
         }
     }
-
-    // ugly workaround, part 2
-    $text = str_replace( '\\"', '"', $text );
-
     return $text;
 }
 
@@ -6864,6 +6922,34 @@ function COM_isAnonUser($uid = '')
 }
 
 /**
+* Create Meta Tags to be used by COM_siteHeader in the headercode variable
+*
+* @param    string  $meta_description   the text for the meta description of the page being displayed
+* @param    string  $meta_keywords        the text for the meta keywords of the page being displayed
+* @return   string                         XHTML formatted text
+*
+*/
+function COM_createMetaTags($meta_description, $meta_keywords)
+{
+    global $_CONF;
+
+    $headercode ='';
+    
+    If ($_CONF['meta_tags'] > 0) {
+        if ($meta_description != '') {
+            $headercode .= LB . '<meta name="description" content="' . $meta_description . '"' . XHTML . '>';
+        }
+        if ($meta_keywords != '') {
+            $headercode .= LB . '<meta name="keywords" content="' . $meta_keywords . '"' . XHTML . '>';
+        }
+    }    
+
+    return $headercode;
+}
+
+
+
+/**
 * Convert wiki-formatted text to (X)HTML
 *
 * @param    string  $wikitext   wiki-formatted text
@@ -6984,6 +7070,101 @@ function COM_output($display)
     }
 
     echo $display;
+}
+
+/**
+* Turn a piece of HTML into continuous(!) plain text
+*
+* This function removes HTML tags, line breaks, etc. and returns one long
+* line of text. This is useful for word counts (do an explode() on the result)
+* and for text excerpts.
+*
+* @param    string  $text   original text, including HTML and line breaks
+* @return   string          continuous plain text
+* 
+*/
+function COM_getTextContent($text)
+{
+    // replace <br> with spaces so that Text<br>Text becomes two words
+    $text = preg_replace('/\<br(\s*)?\/?\>/i', ' ', $text);
+
+    // add extra space between tags, e.g. <p>Text</p><p>Text</p>
+    $text = str_replace('><', '> <', $text);
+
+    // only now remove all HTML tags
+    $text = strip_tags($text);
+
+    // replace all tabs, newlines, and carrriage returns with spaces
+    $text = str_replace(array("\011", "\012", "\015"), ' ', $text);
+
+    // replace entities with plain spaces
+    $text = str_replace(array('&#20;', '&#160;', '&nbsp;'), ' ', $text);
+
+    // collapse whitespace
+    $text = preg_replace('/\s\s+/', ' ', $text);
+
+    return trim($text);
+}
+
+/**
+* Check if Geeklog has been installed yet
+*
+* This is a (very) simple check to see if the user already ran the install
+* script. If not, abort and display a nice(r) welcome screen with handy links
+* to the install script and instructions. Inspired by MediaWiki ...
+*
+*/
+function COM_checkInstalled()
+{
+    global $_CONF;
+
+    $not_installed = false;
+
+    // this is the only thing we check for now ...
+    if (empty($_CONF) || !isset($_CONF['path']) ||
+            ($_CONF['path'] == '/path/to/Geeklog/')) {
+        $not_installed = true;
+    }
+
+    if ($not_installed) {
+        $rel = '';
+        $cd = getcwd();
+        if (! file_exists($cd . '/admin/install.index.php')) {
+            // this should cover most (though not all) cases
+            $rel = '../';
+        }
+
+        $display =
+'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Welcome to Geeklog</title>
+<meta name="robots" content="noindex,nofollow" />
+<style type="text/css">
+  html, body {
+    color:#000;
+    background-color:#fff;
+    font-family:sans-serif;
+    text-align:center;
+  }
+</style>
+</head>
+
+<body>
+<img src="' . $rel . 'docs/images/newlogo.gif" alt="" />
+
+<h1>Geeklog ' . VERSION . '</h1>
+<p>Please run the <a href="' . $rel . 'admin/install/index.php" rel="nofollow">install script</a> first.</p>
+<p>For more information, please refer to the <a href="' . $rel . 'docs/english/install.html" rel="nofollow">installation instructions</a>.</p>
+</body>
+</html>
+';
+
+        header("HTTP/1.1 503 Service Unavailable");
+        header("Status: 503 Service Unavailable");
+        header('Content-Type: text/html; charset=' . $_CONF['default_charset']);
+        die($display);
+    }
 }
 
 /**
